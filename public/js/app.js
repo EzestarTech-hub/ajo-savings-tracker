@@ -1,59 +1,77 @@
-import { auth, db } from "./firebase.js";
+const groupList = document.getElementById("groupList");
+const form = document.getElementById("groupForm");
+const message = document.getElementById("message");
 
-import {
-    createUserWithEmailAndPassword,
-    updateProfile
-} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+form.addEventListener("submit", async (event) => {
+  event.preventDefault();
 
-import {
-    doc,
-    setDoc
-} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+  const group = {
+    name: document.getElementById("name").value,
+    contribution_amount: Number(document.getElementById("amount").value),
+    frequency: document.getElementById("frequency").value,
+    start_date: document.getElementById("startDate").value
+  };
 
-const registerForm = document.getElementById("registerForm");
+  try {
+    const response = await fetch("/api/groups", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(group)
+    });
 
-if (registerForm) {
+    const data = await response.json();
 
-    registerForm.addEventListener("submit", async (e) => {
+    if (response.ok) {
+      message.textContent = data.message;
+      form.reset();
 
-        e.preventDefault();
+      loadGroups();
+    } else {
+      message.textContent = data.error;
+    }
 
-        const fullName = document.getElementById("fullName").value;
-        const email = document.getElementById("email").value;
-        const password = document.getElementById("password").value;
-        const confirmPassword = document.getElementById("confirmPassword").value;
+  } catch (error) {
+    message.textContent = "Something went wrong.";
+    console.error(error);
+  }
+});
 
-        if (password !== confirmPassword) {
-            alert("Passwords do not match!");
-            return;
-        }
+async function loadGroups() {
 
-        try {
+  try {
 
-            const userCredential = await createUserWithEmailAndPassword(
-                auth,
-                email,
-                password
-            );
+    const response = await fetch("/api/groups");
 
-            await updateProfile(userCredential.user, {
-                displayName: fullName
-            });
+    const groups = await response.json();
 
-            await setDoc(doc(db, "users", userCredential.user.uid), {
-                fullName,
-                email,
-                createdAt: new Date()
-            });
+    groupList.innerHTML = "";
 
-            alert("Registration Successful!");
+    groups.forEach(group => {
 
-            window.location.href = "dashboard.html";
+      const li = document.createElement("li");
 
-        } catch (error) {
-            alert(error.message);
-        }
+const link = document.createElement("a");
+
+link.href = `group.html?id=${group.id}`;
+
+link.textContent =
+  `${group.name} - ₦${group.contribution_amount} (${group.frequency})`;
+
+li.appendChild(link);
+
+groupList.appendChild(li);
 
     });
 
+  } catch (error) {
+
+    console.error(error);
+
+  }
+
 }
+
+
+loadGroups();

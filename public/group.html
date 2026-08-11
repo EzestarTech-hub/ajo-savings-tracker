@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Group Details</title>
+
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+    <h1 id="groupName">Loading...</h1>
+
+    <!-- Group Summary -->
+    <div class="card">
+
+        <h3>Members</h3>
+
+        <p id="memberCount">0</p>
+
+    </div>
+
+    <div class="card">
+
+        <h3>Total Contribution</h3>
+
+        <p id="totalContribution">₦0</p>
+
+    </div>
+
+    <!-- ========================================= -->
+<!-- AJO CYCLE / CONTRIBUTION OVERVIEW -->
+<!-- ========================================= -->
+
+<section id="cycleOverviewSection">
+
+    <h2>Ajo Cycle / Contribution Overview</h2>
+
+    <div id="cycleOverview">
+
+        <p>Loading cycle overview...</p>
+
+    </div>
+
+</section>
+
+    <!-- Members -->
+    <h2>Members</h2>
+
+    <div id="memberList"></div>
+
+
+    <!-- Add Member -->
+    <button id="addMember">Add Member</button>
+
+
+    <div
+        id="memberForm"
+        style="display: none;"
+    >
+
+        <h3>Add Member</h3>
+
+        <input
+            type="text"
+            id="memberName"
+            placeholder="Member Name"
+        >
+
+        <button id="saveMember">
+            Save Member
+        </button>
+
+    </div>
+
+
+    <br>
+
+
+    <!-- Contribution Form -->
+    <div
+        id="contributionForm"
+        style="display: none;"
+    >
+
+        <h2>Record Contribution</h2>
+
+        <p id="selectedMember"></p>
+
+        <input
+            type="number"
+            id="contributionAmount"
+            placeholder="Amount"
+        >
+
+        <input
+            type="date"
+            id="paymentDate"
+        >
+
+        <button id="saveContribution">
+            Save Contribution
+        </button>
+
+    </div>
+
+
+    <br>
+
+
+    <!-- Payout Form -->
+    <div
+        id="payoutForm"
+        style="display: none;"
+    >
+
+        <h2>Record Payout</h2>
+
+        <p id="selectedPayoutMember"></p>
+
+        <input
+            type="number"
+            id="payoutAmount"
+            placeholder="Payout Amount"
+        >
+
+        <input
+            type="date"
+            id="payoutDate"
+        >
+
+        <button id="savePayout">
+            Save Payout
+        </button>
+
+    </div>
+
+    <!-- ===============================
+     PAYOUT SCHEDULE
+================================ -->
+
+<div class="card">
+
+    <h3>Payout Schedule</h3>
+
+    <!-- Add Schedule Button -->
+    <button id="addScheduleButton">
+        Add Payout Schedule
+    </button>
+
+    <!-- Schedule Form -->
+    <div
+        id="scheduleForm"
+        style="display: none;"
+    >
+
+        <h4>Create Payout Schedule</h4>
+
+        <select id="scheduleMember">
+
+            <option value="">
+                Select Member
+            </option>
+
+        </select>
+
+        <input
+            type="number"
+            id="scheduleAmount"
+            placeholder="Payout Amount"
+        >
+
+        <input
+            type="date"
+            id="scheduleDate"
+        >
+
+        <button id="saveSchedule">
+            Save Schedule
+        </button>
+
+    </div>
+
+    <!-- Schedule List -->
+    <div id="payoutScheduleList">
+
+        <p>Loading payout schedule...</p>
+
+    </div>
+
+</div>
+
+
+    <!-- JavaScript -->
+    <script src="js/group.js"></script>
+
+</body>
+
+</html>
