@@ -170,7 +170,9 @@ router.put("/:id", (req, res) => {
         status
     } = req.body;
 
-    // Validate required fields
+    // ===============================
+    // VALIDATE INPUT
+    // ===============================
 
     if (
         !member_id ||
@@ -187,9 +189,9 @@ router.put("/:id", (req, res) => {
 
     }
 
-    // ==================================================
-    // PREVENT PAST PAYOUT DATE ON UPDATE
-    // ==================================================
+    // ===============================
+    // PREVENT PAST DATE
+    // ===============================
 
     const today =
         new Date().toISOString().split("T")[0];
@@ -203,9 +205,9 @@ router.put("/:id", (req, res) => {
 
     }
 
-    // ==================================================
+    // ===============================
     // UPDATE SCHEDULE
-    // ==================================================
+    // ===============================
 
     const sql = `
         UPDATE payout_schedule
@@ -277,6 +279,10 @@ router.patch("/:id/status", (req, res) => {
         "Paid"
     ];
 
+    // ===============================
+    // VALIDATE STATUS
+    // ===============================
+
     if (!allowedStatuses.includes(status)) {
 
         return res.status(400).json({
@@ -295,11 +301,14 @@ router.patch("/:id/status", (req, res) => {
     const findSql = `
         SELECT
             id,
+            group_id,
             member_id,
             amount,
             payout_date,
             status
+
         FROM payout_schedule
+
         WHERE id = ?
     `;
 
@@ -342,7 +351,7 @@ router.patch("/:id/status", (req, res) => {
                 db.run(
                     sql,
                     [
-                        status,
+                        "Pending",
                         scheduleId
                     ],
                     function (err) {
@@ -372,8 +381,6 @@ router.patch("/:id/status", (req, res) => {
             // MARK AS PAID
             // ==========================================
 
-            // Prevent duplicate payout
-
             if (schedule.status === "Paid") {
 
                 return res.status(400).json({
@@ -385,19 +392,17 @@ router.patch("/:id/status", (req, res) => {
 
             }
 
-            // ==========================================
-            // CHECK MEMBER AVAILABLE BALANCE
-            // ==========================================
+            // ==================================================
+            // CHECK GROUP AVAILABLE BALANCE
+            // ==================================================
 
             const balanceSql = `
-
                 SELECT
 
                     COALESCE(
                         (
                             SELECT SUM(amount)
                             FROM contributions
-                            WHERE member_id = ?
                         ),
                         0
                     ) AS totalContributions,
@@ -406,34 +411,27 @@ router.patch("/:id/status", (req, res) => {
                         (
                             SELECT SUM(amount)
                             FROM payouts
-                            WHERE member_id = ?
                         ),
                         0
                     ) AS totalPayouts
-
             `;
 
             db.get(
                 balanceSql,
-                [
-                    schedule.member_id,
-                    schedule.member_id
-                ],
+                [],
                 (balanceErr, balance) => {
 
                     if (balanceErr) {
 
                         return res.status(500).json({
-
                             error:
                                 balanceErr.message
-
                         });
 
                     }
 
                     // ==========================================
-                    // CALCULATE AVAILABLE BALANCE
+                    // CALCULATE GROUP AVAILABLE BALANCE
                     // ==========================================
 
                     const totalContributions =
@@ -451,12 +449,20 @@ router.patch("/:id/status", (req, res) => {
                         totalPayouts;
 
                     const payoutAmount =
-                        Number(
-                            schedule.amount
-                        );
+                        Number(schedule.amount);
+
+                    console.log(
+                        "GROUP PAYOUT CHECK:",
+                        {
+                            totalContributions,
+                            totalPayouts,
+                            availableBalance,
+                            payoutAmount
+                        }
+                    );
 
                     // ==========================================
-                    // PREVENT INSUFFICIENT BALANCE
+                    // PREVENT INSUFFICIENT GROUP BALANCE
                     // ==========================================
 
                     if (
@@ -467,7 +473,7 @@ router.patch("/:id/status", (req, res) => {
                         return res.status(400).json({
 
                             error:
-                                "Insufficient member balance.",
+                                "Insufficient group balance.",
 
                             availableBalance:
                                 availableBalance,
@@ -484,7 +490,6 @@ router.patch("/:id/status", (req, res) => {
                     // ==========================================
 
                     const payoutSql = `
-
                         INSERT INTO payouts
                         (
                             member_id,
@@ -492,7 +497,6 @@ router.patch("/:id/status", (req, res) => {
                             payout_date
                         )
                         VALUES (?, ?, ?)
-
                     `;
 
                     db.run(
@@ -523,13 +527,11 @@ router.patch("/:id/status", (req, res) => {
                             // ==================================
 
                             const updateSql = `
-
                                 UPDATE payout_schedule
 
                                 SET status = ?
 
                                 WHERE id = ?
-
                             `;
 
                             db.run(
@@ -632,5 +634,9 @@ router.delete("/:id", (req, res) => {
     );
 
 });
+
+// ======================================================
+// EXPORT ROUTER
+// ======================================================
 
 module.exports = router;

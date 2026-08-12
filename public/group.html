@@ -2,199 +2,363 @@
 <html lang="en">
 
 <head>
+
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Group Details</title>
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
-    <link rel="stylesheet" href="css/style.css">
+    <title>Group Details - Ajo Savings Tracker</title>
+
+    <link
+        rel="stylesheet"
+        href="css/style.css"
+    >
+
 </head>
+
 
 <body>
 
-    <h1 id="groupName">Loading...</h1>
+    <!-- ======================================================
+         PAGE HEADER
+    ======================================================= -->
 
-    <!-- Group Summary -->
-    <div class="card">
+    <header>
 
-        <h3>Members</h3>
+        <h1 id="groupName">
+            Loading...
+        </h1>
 
-        <p id="memberCount">0</p>
+        <a href="dashboard.html">
+            Dashboard
+        </a>
 
-    </div>
-
-    <div class="card">
-
-        <h3>Total Contribution</h3>
-
-        <p id="totalContribution">₦0</p>
-
-    </div>
-
-    <!-- ========================================= -->
-<!-- AJO CYCLE / CONTRIBUTION OVERVIEW -->
-<!-- ========================================= -->
-
-<section id="cycleOverviewSection">
-
-    <h2>Ajo Cycle / Contribution Overview</h2>
-
-    <div id="cycleOverview">
-
-        <p>Loading cycle overview...</p>
-
-    </div>
-
-</section>
-
-    <!-- Members -->
-    <h2>Members</h2>
-
-    <div id="memberList"></div>
+    </header>
 
 
-    <!-- Add Member -->
-    <button id="addMember">Add Member</button>
+    <main>
 
 
-    <div
-        id="memberForm"
-        style="display: none;"
-    >
+        <!-- ==================================================
+             GROUP SUMMARY
+        =================================================== -->
 
-        <h3>Add Member</h3>
+        <section>
 
-        <input
-            type="text"
-            id="memberName"
-            placeholder="Member Name"
+            <h2>Group Summary</h2>
+
+
+            <div class="card">
+
+                <h3>
+                    Members
+                </h3>
+
+                <p id="memberCount">
+                    0
+                </p>
+
+            </div>
+
+
+            <div class="card">
+
+                <h3>
+                    Total Contribution
+                </h3>
+
+                <p id="totalContribution">
+                    ₦0
+                </p>
+
+            </div>
+
+        </section>
+
+
+        <!-- ==================================================
+             AJO CYCLE / CONTRIBUTION OVERVIEW
+        =================================================== -->
+
+        <section
+            id="cycleOverviewSection"
         >
 
-        <button id="saveMember">
-            Save Member
-        </button>
-
-    </div>
+            <h2>
+                Ajo Cycle / Contribution Overview
+            </h2>
 
 
-    <br>
+            <div
+                id="cycleOverview"
+            >
+
+                <p>
+                    Loading cycle overview...
+                </p>
+
+            </div>
+
+        </section>
 
 
-    <!-- Contribution Form -->
-    <div
-        id="contributionForm"
-        style="display: none;"
-    >
+        <!-- ==================================================
+             MEMBERS
+        =================================================== -->
 
-        <h2>Record Contribution</h2>
+        <section>
 
-        <p id="selectedMember"></p>
+            <h2>
+                Members
+            </h2>
 
-        <input
-            type="number"
-            id="contributionAmount"
-            placeholder="Amount"
+
+            <div
+                id="memberList"
+            >
+
+                <p>
+                    Loading members...
+                </p>
+
+            </div>
+
+
+            <!-- Add Member -->
+
+            <button
+                id="addMember"
+                type="button"
+            >
+                Add Member
+            </button>
+
+
+            <!-- Add Member Form -->
+
+            <div
+                id="memberForm"
+                style="display: none;"
+            >
+
+                <h3>
+                    Add Member
+                </h3>
+
+
+                <input
+                    type="text"
+                    id="memberName"
+                    placeholder="Member Name"
+                >
+
+
+                <button
+                    id="saveMember"
+                    type="button"
+                >
+                    Save Member
+                </button>
+
+            </div>
+
+        </section>
+
+
+        <!-- ==================================================
+             CONTRIBUTION FORM
+        =================================================== -->
+
+        <section
+            id="contributionForm"
+            style="display: none;"
         >
 
-        <input
-            type="date"
-            id="paymentDate"
+            <h2>
+                Record Contribution
+            </h2>
+
+
+            <p id="selectedMember"></p>
+
+
+            <input
+                type="number"
+                id="contributionAmount"
+                placeholder="Amount"
+                min="1"
+            >
+
+
+            <input
+                type="date"
+                id="paymentDate"
+            >
+
+
+            <button
+                id="saveContribution"
+                type="button"
+            >
+                Save Contribution
+            </button>
+
+        </section>
+
+
+        <!-- ==================================================
+             PAYOUT FORM
+        =================================================== -->
+
+        <section
+            id="payoutForm"
+            style="display: none;"
         >
 
-        <button id="saveContribution">
-            Save Contribution
-        </button>
-
-    </div>
+            <h2>
+                Record Payout
+            </h2>
 
 
-    <br>
+            <p id="selectedPayoutMember"></p>
 
 
-    <!-- Payout Form -->
-    <div
-        id="payoutForm"
-        style="display: none;"
-    >
-
-        <h2>Record Payout</h2>
-
-        <p id="selectedPayoutMember"></p>
-
-        <input
-            type="number"
-            id="payoutAmount"
-            placeholder="Payout Amount"
-        >
-
-        <input
-            type="date"
-            id="payoutDate"
-        >
-
-        <button id="savePayout">
-            Save Payout
-        </button>
-
-    </div>
-
-    <!-- ===============================
-     PAYOUT SCHEDULE
-================================ -->
-
-<div class="card">
-
-    <h3>Payout Schedule</h3>
-
-    <!-- Add Schedule Button -->
-    <button id="addScheduleButton">
-        Add Payout Schedule
-    </button>
-
-    <!-- Schedule Form -->
-    <div
-        id="scheduleForm"
-        style="display: none;"
-    >
-
-        <h4>Create Payout Schedule</h4>
-
-        <select id="scheduleMember">
-
-            <option value="">
-                Select Member
-            </option>
-
-        </select>
-
-        <input
-            type="number"
-            id="scheduleAmount"
-            placeholder="Payout Amount"
-        >
-
-        <input
-            type="date"
-            id="scheduleDate"
-        >
-
-        <button id="saveSchedule">
-            Save Schedule
-        </button>
-
-    </div>
-
-    <!-- Schedule List -->
-    <div id="payoutScheduleList">
-
-        <p>Loading payout schedule...</p>
-
-    </div>
-
-</div>
+            <input
+                type="number"
+                id="payoutAmount"
+                placeholder="Payout Amount"
+                min="1"
+            >
 
 
-    <!-- JavaScript -->
+            <input
+                type="date"
+                id="payoutDate"
+            >
+
+
+            <button
+                id="savePayout"
+                type="button"
+            >
+                Save Payout
+            </button>
+
+        </section>
+
+
+        <!-- ==================================================
+             PAYOUT SCHEDULE
+        =================================================== -->
+
+        <section>
+
+            <div class="card">
+
+                <h2>
+                    Payout Schedule
+                </h2>
+
+
+                <!-- Add Schedule Button -->
+
+                <button
+                    id="addScheduleButton"
+                    type="button"
+                >
+                    Add Payout Schedule
+                </button>
+
+
+                <!-- Schedule Form -->
+
+                <div
+                    id="scheduleForm"
+                    style="display: none;"
+                >
+
+                    <h3>
+                        Create Payout Schedule
+                    </h3>
+
+
+                    <label for="scheduleMember">
+                        Member
+                    </label>
+
+
+                    <select
+                        id="scheduleMember"
+                    >
+
+                        <option value="">
+                            Select Member
+                        </option>
+
+                    </select>
+
+
+                    <label for="scheduleAmount">
+                        Amount
+                    </label>
+
+
+                    <input
+                        type="number"
+                        id="scheduleAmount"
+                        placeholder="Payout Amount"
+                        min="1"
+                    >
+
+
+                    <label for="scheduleDate">
+                        Payout Date
+                    </label>
+
+
+                    <input
+                        type="date"
+                        id="scheduleDate"
+                    >
+
+
+                    <button
+                        id="saveSchedule"
+                        type="button"
+                    >
+                        Save Schedule
+                    </button>
+
+                </div>
+
+
+                <!-- Schedule List -->
+
+                <div
+                    id="payoutScheduleList"
+                >
+
+                    <p>
+                        Loading payout schedule...
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+    </main>
+
+
+    <!-- ======================================================
+         GROUP JAVASCRIPT
+    ======================================================= -->
+
     <script src="js/group.js"></script>
 
 </body>

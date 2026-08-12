@@ -1,9 +1,21 @@
-const params = new URLSearchParams(window.location.search);
-const groupId = params.get("id");
+// ======================================================
+// AJO SAVINGS TRACKER - GROUP DETAILS
+// ======================================================
 
-// ===============================
+// ======================================================
+// GET GROUP ID FROM URL
+// ======================================================
+
+const urlParams = new URLSearchParams(
+    window.location.search
+);
+
+const groupId = urlParams.get("id");
+
+
+// ======================================================
 // GET HTML ELEMENTS
-// ===============================
+// ======================================================
 
 const groupName =
     document.getElementById("groupName");
@@ -14,23 +26,29 @@ const memberCount =
 const totalContribution =
     document.getElementById("totalContribution");
 
+const cycleOverview =
+    document.getElementById("cycleOverview");
+
 const memberList =
     document.getElementById("memberList");
 
-const addMemberButton =
+const addMember =
     document.getElementById("addMember");
 
 const memberForm =
     document.getElementById("memberForm");
 
-const saveMemberButton =
-    document.getElementById("saveMember");
-
-const memberNameInput =
+const memberName =
     document.getElementById("memberName");
+
+const saveMember =
+    document.getElementById("saveMember");
 
 const contributionForm =
     document.getElementById("contributionForm");
+
+const selectedMember =
+    document.getElementById("selectedMember");
 
 const contributionAmount =
     document.getElementById("contributionAmount");
@@ -38,14 +56,16 @@ const contributionAmount =
 const paymentDate =
     document.getElementById("paymentDate");
 
-const saveContributionButton =
+const saveContribution =
     document.getElementById("saveContribution");
-
-const selectedMemberText =
-    document.getElementById("selectedMember");
 
 const payoutForm =
     document.getElementById("payoutForm");
+
+const selectedPayoutMember =
+    document.getElementById(
+        "selectedPayoutMember"
+    );
 
 const payoutAmount =
     document.getElementById("payoutAmount");
@@ -53,58 +73,81 @@ const payoutAmount =
 const payoutDate =
     document.getElementById("payoutDate");
 
-const savePayoutButton =
+const savePayout =
     document.getElementById("savePayout");
 
-const selectedPayoutMember =
-    document.getElementById("selectedPayoutMember");
-
-// ===============================
-// PAYOUT SCHEDULE ELEMENTS
-// ===============================
-
 const addScheduleButton =
-    document.getElementById("addScheduleButton");
+    document.getElementById(
+        "addScheduleButton"
+    );
 
 const scheduleForm =
     document.getElementById("scheduleForm");
 
 const scheduleMember =
-    document.getElementById("scheduleMember");
+    document.getElementById(
+        "scheduleMember"
+    );
 
 const scheduleAmount =
-    document.getElementById("scheduleAmount");
+    document.getElementById(
+        "scheduleAmount"
+    );
 
 const scheduleDate =
-    document.getElementById("scheduleDate");
+    document.getElementById(
+        "scheduleDate"
+    );
 
-const saveScheduleButton =
-    document.getElementById("saveSchedule");
+const saveSchedule =
+    document.getElementById(
+        "saveSchedule"
+    );
 
-// ===============================
-// VARIABLES
-// ===============================
+const payoutScheduleList =
+    document.getElementById(
+        "payoutScheduleList"
+    );
 
-let selectedMemberId = null;
-let editingContributionId = null;
-let editingPayoutId = null;
-let editingScheduleId = null;
 
-// ===============================
+// ======================================================
+// CURRENT MEMBER SELECTION
+// ======================================================
+
+let selectedContributionMemberId = null;
+
+let selectedPayoutMemberId = null;
+
+
+// ======================================================
+// FORMAT MONEY
+// ======================================================
+
+function formatMoney(amount) {
+
+    return `₦${Number(
+        amount || 0
+    ).toLocaleString()}`;
+
+}
+
+
+// ======================================================
 // CHECK GROUP ID
-// ===============================
+// ======================================================
 
 if (!groupId) {
 
     alert(
-        "Group ID is missing from the URL."
+        "No group ID was provided."
     );
 
 }
 
-// ===============================
+
+// ======================================================
 // LOAD GROUP SUMMARY
-// ===============================
+// ======================================================
 
 async function loadGroupSummary() {
 
@@ -126,24 +169,26 @@ async function loadGroupSummary() {
 
         }
 
-        const group =
+        const data =
             await response.json();
 
+
         groupName.textContent =
-            group.groupName;
+            data.groupName;
 
         memberCount.textContent =
-            group.numberOfMembers;
+            data.numberOfMembers;
 
         totalContribution.textContent =
-            `₦${Number(
-                group.totalContribution
-            ).toLocaleString()}`;
+            formatMoney(
+                data.totalContribution
+            );
+
 
     } catch (error) {
 
         console.error(
-            "Summary error:",
+            "Group summary error:",
             error
         );
 
@@ -154,9 +199,187 @@ async function loadGroupSummary() {
 
 }
 
-// ===============================
+
+// ======================================================
+// LOAD CYCLE OVERVIEW
+// ======================================================
+
+async function loadCycleOverview() {
+
+    try {
+
+        const response =
+            await fetch(
+                `/api/groups/${groupId}/cycle-overview`,
+                {
+                    cache: "no-store"
+                }
+            );
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Failed to load cycle overview."
+            );
+
+        }
+
+        const data =
+            await response.json();
+
+
+        const group =
+            data.group;
+
+        const cycle =
+            data.cycle;
+
+
+        groupName.textContent =
+            group.name;
+
+
+        cycleOverview.innerHTML = `
+
+            <div class="card">
+
+                <h3>
+                    Contribution
+                </h3>
+
+                <p>
+                    ${formatMoney(
+                        group.contributionAmount
+                    )}
+                    /
+                    ${group.frequency}
+                </p>
+
+            </div>
+
+
+            <div class="card">
+
+                <h3>
+                    Current Cycle
+                </h3>
+
+                <p>
+                    ${cycle.elapsedCycles}
+                </p>
+
+            </div>
+
+
+            <div class="card">
+
+                <h3>
+                    Expected
+                </h3>
+
+                <p>
+                    ${formatMoney(
+                        cycle.totalExpected
+                    )}
+                </p>
+
+            </div>
+
+
+            <div class="card">
+
+                <h3>
+                    Current Contribution
+                </h3>
+
+                <p>
+                    ${formatMoney(
+                        cycle.totalActual
+                    )}
+                </p>
+
+            </div>
+
+
+            <div class="card">
+
+                <h3>
+                    Total Contribution To Date
+                </h3>
+
+                <p>
+                    ${formatMoney(
+                        cycle.totalContributionToDate
+                    )}
+                </p>
+
+            </div>
+
+
+            <div class="card">
+
+                <h3>
+                    Outstanding
+                </h3>
+
+                <p>
+                    ${formatMoney(
+                        cycle.outstanding
+                    )}
+                </p>
+
+            </div>
+
+
+            <div class="card">
+
+                <h3>
+                    Progress
+                </h3>
+
+                <p>
+                    ${cycle.progress}%
+                </p>
+
+            </div>
+
+
+            <div class="card">
+
+                <h3>
+                    Status
+                </h3>
+
+                <p>
+                    ${cycle.status}
+                </p>
+
+            </div>
+
+        `;
+
+
+    } catch (error) {
+
+        console.error(
+            "Cycle overview error:",
+            error
+        );
+
+        cycleOverview.innerHTML = `
+            <p>
+                Unable to load cycle overview.
+            </p>
+        `;
+
+    }
+
+}
+
+
+// ======================================================
 // LOAD MEMBERS
-// ===============================
+// ======================================================
 
 async function loadMembers() {
 
@@ -181,658 +404,139 @@ async function loadMembers() {
         const members =
             await response.json();
 
-        // ===============================
-        // FILL SCHEDULE MEMBER DROPDOWN
-        // ===============================
-
-        if (scheduleMember) {
-
-            scheduleMember.innerHTML = `
-                <option value="">
-                    Select Member
-                </option>
-            `;
-
-            members.forEach(
-                member => {
-
-                    const option =
-                        document.createElement(
-                            "option"
-                        );
-
-                    option.value =
-                        member.id;
-
-                    option.textContent =
-                        member.name;
-
-                    scheduleMember.appendChild(
-                        option
-                    );
-
-                }
-            );
-
-        }
 
         memberList.innerHTML = "";
 
-        // ===============================
-        // LOOP MEMBERS
-        // ===============================
 
-        for (const member of members) {
+        if (members.length === 0) {
 
-            // ===============================
-            // MEMBER CONTAINER
-            // ===============================
+            memberList.innerHTML = `
+                <p>
+                    No members yet.
+                </p>
+            `;
 
-            const memberContainer =
-                document.createElement("div");
-
-            memberContainer.className =
-                "member-card";
-
-            // ===============================
-            // MEMBER NAME
-            // ===============================
-
-            const memberName =
-                document.createElement("h3");
-
-            memberName.textContent =
-                member.name;
-
-            memberContainer.appendChild(
-                memberName
-            );
-
-            // ===============================
-            // MEMBER BALANCE
-            // ===============================
-
-            const balanceContainer =
-                document.createElement("div");
-
-            try {
-
-                const balanceResponse =
-                    await fetch(
-                        `/api/members/${member.id}/balance`,
-                        {
-                            cache: "no-store"
-                        }
-                    );
-
-                if (balanceResponse.ok) {
-
-                    const balance =
-                        await balanceResponse.json();
-
-                    const contributionTotal =
-                        Number(
-                            balance.totalContributions || 0
-                        );
-
-                    const payoutTotal =
-                        Number(
-                            balance.totalPayouts || 0
-                        );
-
-                    const memberBalance =
-                        Number(
-                            balance.balance ??
-                            (
-                                contributionTotal -
-                                payoutTotal
-                            )
-                        );
-
-                    balanceContainer.innerHTML = `
-                        <p>
-                            <strong>
-                                Total Contributions:
-                            </strong>
-                            ₦${contributionTotal.toLocaleString()}
-                        </p>
-
-                        <p>
-                            <strong>
-                                Total Payouts:
-                            </strong>
-                            ₦${payoutTotal.toLocaleString()}
-                        </p>
-
-                        <p>
-                            <strong>
-                                Balance:
-                            </strong>
-                            ₦${memberBalance.toLocaleString()}
-                        </p>
-                    `;
-
-                }
-
-            } catch (error) {
-
-                console.error(
-                    `Balance error for ${member.name}:`,
-                    error
-                );
-
-            }
-
-            memberContainer.appendChild(
-                balanceContainer
-            );
-
-            // ===============================
-            // BUTTON CONTAINER
-            // ===============================
-
-            const buttonContainer =
-                document.createElement("div");
-
-            // ===============================
-            // RECORD CONTRIBUTION
-            // ===============================
-
-            const contributionButton =
-                document.createElement("button");
-
-            contributionButton.textContent =
-                "Record Contribution";
-
-            contributionButton.addEventListener(
-                "click",
-                () => {
-
-                    selectedMemberId =
-                        member.id;
-
-                    editingContributionId =
-                        null;
-
-                    selectedMemberText.textContent =
-                        `Recording contribution for: ${member.name}`;
-
-                    contributionAmount.value =
-                        "";
-
-                    paymentDate.value =
-                        "";
-
-                    saveContributionButton.textContent =
-                        "Save Contribution";
-
-                    contributionForm.style.display =
-                        "block";
-
-                    contributionAmount.focus();
-
-                }
-            );
-
-            buttonContainer.appendChild(
-                contributionButton
-            );
-
-            // ===============================
-            // RECORD PAYOUT
-            // ===============================
-
-            const payoutButton =
-                document.createElement("button");
-
-            payoutButton.textContent =
-                "Record Payout";
-
-            payoutButton.addEventListener(
-                "click",
-                () => {
-
-                    selectedMemberId =
-                        member.id;
-
-                    editingPayoutId =
-                        null;
-
-                    selectedPayoutMember.textContent =
-                        `Recording payout for: ${member.name}`;
-
-                    payoutAmount.value =
-                        "";
-
-                    payoutDate.value =
-                        "";
-
-                    savePayoutButton.textContent =
-                        "Save Payout";
-
-                    payoutForm.style.display =
-                        "block";
-
-                    payoutAmount.focus();
-
-                }
-            );
-
-            buttonContainer.appendChild(
-                payoutButton
-            );
-
-            memberContainer.appendChild(
-                buttonContainer
-            );
-
-            // ===============================
-            // CONTRIBUTIONS TITLE
-            // ===============================
-
-            const contributionTitle =
-                document.createElement("h4");
-
-            contributionTitle.textContent =
-                "Contributions";
-
-            memberContainer.appendChild(
-                contributionTitle
-            );
-
-            // ===============================
-            // CONTRIBUTION LIST
-            // ===============================
-
-            const contributionList =
-                document.createElement("div");
-
-            try {
-
-                const response =
-                    await fetch(
-                        `/api/members/${member.id}/contributions`,
-                        {
-                            cache: "no-store"
-                        }
-                    );
-
-                if (response.ok) {
-
-                    const contributions =
-                        await response.json();
-
-                    contributions.forEach(
-                        contribution => {
-
-                            const row =
-                                document.createElement("div");
-
-                            row.className =
-                                "contribution-row";
-
-                            const info =
-                                document.createElement("span");
-
-                            info.textContent =
-                                `₦${Number(
-                                    contribution.amount
-                                ).toLocaleString()} — ${contribution.payment_date}`;
-
-                            row.appendChild(
-                                info
-                            );
-
-                            // ===============================
-                            // EDIT CONTRIBUTION
-                            // ===============================
-
-                            const editButton =
-                                document.createElement("button");
-
-                            editButton.textContent =
-                                "Edit";
-
-                            editButton.addEventListener(
-                                "click",
-                                () => {
-
-                                    selectedMemberId =
-                                        member.id;
-
-                                    editingContributionId =
-                                        contribution.id;
-
-                                    selectedMemberText.textContent =
-                                        `Editing contribution for: ${member.name}`;
-
-                                    contributionAmount.value =
-                                        contribution.amount;
-
-                                    paymentDate.value =
-                                        contribution.payment_date;
-
-                                    saveContributionButton.textContent =
-                                        "Update Contribution";
-
-                                    contributionForm.style.display =
-                                        "block";
-
-                                    contributionAmount.focus();
-
-                                }
-                            );
-
-                            row.appendChild(
-                                editButton
-                            );
-
-                            // ===============================
-                            // DELETE CONTRIBUTION
-                            // ===============================
-
-                            const deleteButton =
-                                document.createElement("button");
-
-                            deleteButton.textContent =
-                                "Delete";
-
-                            deleteButton.addEventListener(
-                                "click",
-                                async () => {
-
-                                    const confirmed =
-                                        confirm(
-                                            "Are you sure you want to delete this contribution?"
-                                        );
-
-                                    if (!confirmed) {
-                                        return;
-                                    }
-
-                                    try {
-
-                                        const deleteResponse =
-                                            await fetch(
-                                                `/api/members/${contribution.id}`,
-                                                {
-                                                    method:
-                                                        "DELETE"
-                                                }
-                                            );
-
-                                        const data =
-                                            await deleteResponse.json();
-
-                                        if (
-                                            deleteResponse.ok
-                                        ) {
-
-                                            alert(
-                                                data.message
-                                            );
-
-                                            await loadGroupSummary();
-
-                                            await loadMembers();
-
-                                        } else {
-
-                                            alert(
-                                                data.error
-                                            );
-
-                                        }
-
-                                    } catch (error) {
-
-                                        console.error(
-                                            error
-                                        );
-
-                                        alert(
-                                            "Unable to delete contribution."
-                                        );
-
-                                    }
-
-                                }
-                            );
-
-                            row.appendChild(
-                                deleteButton
-                            );
-
-                            contributionList.appendChild(
-                                row
-                            );
-
-                        }
-                    );
-
-                }
-
-            } catch (error) {
-
-                console.error(
-                    "Contribution error:",
-                    error
-                );
-
-            }
-
-            memberContainer.appendChild(
-                contributionList
-            );
-
-            // ===============================
-            // PAYOUTS TITLE
-            // ===============================
-
-            const payoutTitle =
-                document.createElement("h4");
-
-            payoutTitle.textContent =
-                "Payouts";
-
-            memberContainer.appendChild(
-                payoutTitle
-            );
-
-            // ===============================
-            // PAYOUT LIST
-            // ===============================
-
-            const payoutList =
-                document.createElement("div");
-
-            try {
-
-                const response =
-                    await fetch(
-                        `/api/members/${member.id}/payouts`,
-                        {
-                            cache: "no-store"
-                        }
-                    );
-
-                if (response.ok) {
-
-                    const payouts =
-                        await response.json();
-
-                    payouts.forEach(
-                        payout => {
-
-                            const row =
-                                document.createElement("div");
-
-                            row.className =
-                                "payout-row";
-
-                            const info =
-                                document.createElement("span");
-
-                            info.textContent =
-                                `₦${Number(
-                                    payout.amount
-                                ).toLocaleString()} — ${payout.payout_date}`;
-
-                            row.appendChild(
-                                info
-                            );
-
-                            // ===============================
-                            // EDIT PAYOUT
-                            // ===============================
-
-                            const editButton =
-                                document.createElement("button");
-
-                            editButton.textContent =
-                                "Edit";
-
-                            editButton.addEventListener(
-                                "click",
-                                () => {
-
-                                    selectedMemberId =
-                                        member.id;
-
-                                    editingPayoutId =
-                                        payout.id;
-
-                                    selectedPayoutMember.textContent =
-                                        `Editing payout for: ${member.name}`;
-
-                                    payoutAmount.value =
-                                        payout.amount;
-
-                                    payoutDate.value =
-                                        payout.payout_date;
-
-                                    savePayoutButton.textContent =
-                                        "Update Payout";
-
-                                    payoutForm.style.display =
-                                        "block";
-
-                                    payoutAmount.focus();
-
-                                }
-                            );
-
-                            row.appendChild(
-                                editButton
-                            );
-
-                            // ===============================
-                            // DELETE PAYOUT
-                            // ===============================
-
-                            const deleteButton =
-                                document.createElement("button");
-
-                            deleteButton.textContent =
-                                "Delete";
-
-                            deleteButton.addEventListener(
-                                "click",
-                                async () => {
-
-                                    const confirmed =
-                                        confirm(
-                                            "Are you sure you want to delete this payout?"
-                                        );
-
-                                    if (!confirmed) {
-                                        return;
-                                    }
-
-                                    try {
-
-                                        const deleteResponse =
-                                            await fetch(
-                                                `/api/members/payouts/${payout.id}`,
-                                                {
-                                                    method:
-                                                        "DELETE"
-                                                }
-                                            );
-
-                                        const data =
-                                            await deleteResponse.json();
-
-                                        if (
-                                            deleteResponse.ok
-                                        ) {
-
-                                            alert(
-                                                data.message
-                                            );
-
-                                            await loadGroupSummary();
-
-                                            await loadMembers();
-
-                                        } else {
-
-                                            alert(
-                                                data.error
-                                            );
-
-                                        }
-
-                                    } catch (error) {
-
-                                        console.error(
-                                            error
-                                        );
-
-                                        alert(
-                                            "Unable to delete payout."
-                                        );
-
-                                    }
-
-                                }
-                            );
-
-                            row.appendChild(
-                                deleteButton
-                            );
-
-                            payoutList.appendChild(
-                                row
-                            );
-
-                        }
-                    );
-
-                }
-
-            } catch (error) {
-
-                console.error(
-                    "Payout error:",
-                    error
-                );
-
-            }
-
-            memberContainer.appendChild(
-                payoutList
-            );
-
-            // ===============================
-            // ADD MEMBER CARD
-            // ===============================
-
-            memberList.appendChild(
-                memberContainer
-            );
+            return;
 
         }
+
+
+        members.forEach(
+            member => {
+
+                const item =
+                    document.createElement(
+                        "div"
+                    );
+
+                item.className =
+                    "card";
+
+
+                item.innerHTML = `
+
+                    <h3>
+                        ${member.name}
+                    </h3>
+
+                    <button
+                        type="button"
+                        class="contribution-button"
+                    >
+                        Record Contribution
+                    </button>
+
+                    <button
+                        type="button"
+                        class="view-contributions-button"
+                    >
+                        View Contributions
+                    </button>
+
+                    <button
+                        type="button"
+                        class="payout-button"
+                    >
+                    Record Payout
+                    </button>
+                    `;
+
+
+                const contributionButton =
+                    item.querySelector(
+                        ".contribution-button"
+                    );
+
+                contributionButton.addEventListener(
+                    "click",
+                    () => {
+
+                        selectedContributionMemberId =
+                            member.id;
+
+                        selectedMember.textContent =
+                            `Member: ${member.name}`;
+
+                        contributionForm.style.display =
+                            "block";
+
+                        contributionForm.scrollIntoView({
+                            behavior: "smooth"
+                        });
+
+                    }
+                );
+
+                const viewContributionsButton =
+    item.querySelector(
+        ".view-contributions-button"
+    );
+
+viewContributionsButton.addEventListener(
+    "click",
+    () => {
+        loadMemberContributions(member.id);
+    }
+);
+
+                const payoutButton =
+                    item.querySelector(
+                        ".payout-button"
+                    );
+
+                payoutButton.addEventListener(
+                    "click",
+                    () => {
+
+                        selectedPayoutMemberId =
+                            member.id;
+
+                        selectedPayoutMember.textContent =
+                            `Member: ${member.name}`;
+
+                        payoutForm.style.display =
+                            "block";
+
+                        payoutForm.scrollIntoView({
+                            behavior: "smooth"
+                        });
+
+                    }
+                );
+
+
+                memberList.appendChild(
+                    item
+                );
+
+            }
+        );
+
+
+        updateScheduleMembers(
+            members
+        );
+
 
     } catch (error) {
 
@@ -841,38 +545,344 @@ async function loadMembers() {
             error
         );
 
+        memberList.innerHTML = `
+            <p>
+                Unable to load members.
+            </p>
+        `;
+
     }
 
 }
 
-// ===============================
-// ADD MEMBER
-// ===============================
+// ======================================================
+// LOAD MEMBER CONTRIBUTIONS
+// ======================================================
 
-addMemberButton.addEventListener(
+async function loadMemberContributions(memberId) {
+
+    try {
+
+        const response =
+            await fetch(
+                `/api/members/${memberId}/contributions`,
+                {
+                    cache: "no-store"
+                }
+            );
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Failed to load contributions."
+            );
+
+        }
+
+        const contributions =
+            await response.json();
+
+        if (contributions.length === 0) {
+
+            alert(
+                "This member has no contributions yet."
+            );
+
+            return;
+
+        }
+
+        let message =
+            "Contribution History\n\n";
+
+        contributions.forEach(
+            contribution => {
+
+                message +=
+                    `ID: ${contribution.id}\n`;
+
+                message +=
+                    `Amount: ₦${Number(
+                        contribution.amount
+                    ).toLocaleString()}\n`;
+
+                message +=
+                    `Date: ${contribution.payment_date}\n\n`;
+
+            }
+        );
+
+        message +=
+            "Click OK to manage a contribution.";
+
+        alert(message);
+
+
+        // ==========================================
+        // SELECT CONTRIBUTION
+        // ==========================================
+
+        const contributionId =
+            prompt(
+                "Enter the Contribution ID you want to manage:"
+            );
+
+        if (!contributionId) {
+
+            return;
+
+        }
+
+
+        const contribution =
+            contributions.find(
+                item =>
+                    String(item.id) ===
+                    String(contributionId)
+            );
+
+
+        if (!contribution) {
+
+            alert(
+                "Contribution ID not found."
+            );
+
+            return;
+
+        }
+
+
+        const action =
+            prompt(
+                "Enter E to Edit or D to Delete:"
+            );
+
+
+        if (!action) {
+
+            return;
+
+        }
+
+
+        // ==========================================
+        // EDIT
+        // ==========================================
+
+        if (
+            action.toUpperCase() ===
+            "E"
+        ) {
+
+            const newAmount =
+                prompt(
+                    "Enter new contribution amount:",
+                    contribution.amount
+                );
+
+
+            if (
+                newAmount === null ||
+                Number(newAmount) <= 0
+            ) {
+
+                alert(
+                    "Invalid amount."
+                );
+
+                return;
+
+            }
+
+
+            const newDate =
+                prompt(
+                    "Enter new payment date:",
+                    contribution.payment_date
+                );
+
+
+            if (!newDate) {
+
+                alert(
+                    "Invalid payment date."
+                );
+
+                return;
+
+            }
+
+
+            const updateResponse =
+                await fetch(
+                    `/api/members/contributions/${contribution.id}`,
+                    {
+                        method: "PUT",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body:
+                            JSON.stringify({
+                                amount:
+                                    Number(newAmount),
+
+                                payment_date:
+                                    newDate
+                            })
+                    }
+                );
+
+
+            const updateData =
+                await updateResponse.json();
+
+
+            if (!updateResponse.ok) {
+
+                alert(
+                    updateData.error ||
+                    "Unable to update contribution."
+                );
+
+                return;
+
+            }
+
+
+            alert(
+                updateData.message
+            );
+
+
+            await loadGroupSummary();
+
+            await loadCycleOverview();
+
+            await loadMembers();
+
+        }
+
+
+        // ==========================================
+        // DELETE
+        // ==========================================
+
+        else if (
+            action.toUpperCase() ===
+            "D"
+        ) {
+
+            const confirmed =
+                confirm(
+                    `Delete contribution of ₦${Number(
+                        contribution.amount
+                    ).toLocaleString()} dated ${contribution.payment_date}?`
+                );
+
+
+            if (!confirmed) {
+
+                return;
+
+            }
+
+
+            const deleteResponse =
+                await fetch(
+                    `/api/members/contributions/${contribution.id}`,
+                    {
+                        method: "DELETE"
+                    }
+                );
+
+
+            const deleteData =
+                await deleteResponse.json();
+
+
+            if (!deleteResponse.ok) {
+
+                alert(
+                    deleteData.error ||
+                    "Unable to delete contribution."
+                );
+
+                return;
+
+            }
+
+
+            alert(
+                deleteData.message
+            );
+
+
+            await loadGroupSummary();
+
+            await loadCycleOverview();
+
+            await loadMembers();
+
+        }
+
+
+        else {
+
+            alert(
+                "Invalid option. Enter E for Edit or D for Delete."
+            );
+
+        }
+
+
+    } catch (error) {
+
+        console.error(
+            "Member contributions error:",
+            error
+        );
+
+        alert(
+            "Unable to manage contribution."
+        );
+
+    }
+
+}
+
+
+// ======================================================
+// ADD MEMBER BUTTON
+// ======================================================
+
+addMember.addEventListener(
     "click",
     () => {
 
         memberForm.style.display =
-            "block";
-
-        memberNameInput.focus();
+            memberForm.style.display === "none"
+                ? "block"
+                : "none";
 
     }
 );
 
-// ===============================
+
+// ======================================================
 // SAVE MEMBER
-// ===============================
+// ======================================================
 
-saveMemberButton.addEventListener(
+saveMember.addEventListener(
     "click",
-    async (event) => {
-
-        event.preventDefault();
+    async () => {
 
         const name =
-            memberNameInput.value.trim();
+            memberName.value.trim();
+
 
         if (!name) {
 
@@ -884,14 +894,14 @@ saveMemberButton.addEventListener(
 
         }
 
+
         try {
 
             const response =
                 await fetch(
                     `/api/groups/${groupId}/members`,
                     {
-                        method:
-                            "POST",
+                        method: "POST",
 
                         headers: {
                             "Content-Type":
@@ -900,46 +910,56 @@ saveMemberButton.addEventListener(
 
                         body:
                             JSON.stringify({
-                                name
+                                name: name
+
                             })
                     }
                 );
 
+
             const data =
                 await response.json();
 
-            if (response.ok) {
 
-    alert(data.message);
-
-    memberNameInput.value = "";
-
-    memberForm.style.display =
-        "none";
-
-    await loadGroupSummary();
-
-    await loadMembers();
-
-    // Refresh Ajo Cycle / Contribution Overview
-    await loadCycleOverview();
-
-} else {
+            if (!response.ok) {
 
                 alert(
-                    data.error
+                    data.error ||
+                    "Unable to add member."
                 );
 
+                return;
+
             }
+
+
+            alert(
+                data.message
+            );
+
+
+            memberName.value = "";
+
+            memberForm.style.display =
+                "none";
+
+
+            await loadGroupSummary();
+
+            await loadCycleOverview();
+
+            await loadMembers();
+
 
         } catch (error) {
 
             console.error(
+                "Add member error:",
                 error
             );
 
             alert(
-                "Unable to save member."
+                "Something went wrong."
             );
 
         }
@@ -947,142 +967,119 @@ saveMemberButton.addEventListener(
     }
 );
 
-// ===============================
-// SAVE OR UPDATE CONTRIBUTION
-// ===============================
 
-saveContributionButton.addEventListener(
+// ======================================================
+// SAVE CONTRIBUTION
+// ======================================================
+
+saveContribution.addEventListener(
     "click",
-    async (event) => {
+    async () => {
 
-        event.preventDefault();
+        if (!selectedContributionMemberId) {
+
+            alert(
+                "Please select a member."
+            );
+
+            return;
+
+        }
+
 
         const amount =
             Number(
                 contributionAmount.value
             );
 
-        const payment_date =
+        const date =
             paymentDate.value;
+
 
         if (
             !amount ||
             amount <= 0 ||
-            !payment_date
+            !date
         ) {
 
             alert(
-                "Enter a valid contribution amount and payment date."
+                "Enter a valid contribution amount and date."
             );
 
             return;
 
         }
 
+
         try {
 
-            let response;
+            const response =
+                await fetch(
+                    `/api/members/${selectedContributionMemberId}/contributions`,
+                    {
+                        method: "POST",
 
-            // ===============================
-            // UPDATE CONTRIBUTION
-            // ===============================
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
 
-            if (editingContributionId) {
+                        body:
+                            JSON.stringify({
+                                amount: amount,
+                                payment_date: date
+                            })
+                    }
+                );
 
-                response =
-                    await fetch(
-                        `/api/members/${editingContributionId}`,
-                        {
-                            method:
-                                "PUT",
-
-                            headers: {
-                                "Content-Type":
-                                    "application/json"
-                            },
-
-                            body:
-                                JSON.stringify({
-                                    amount,
-                                    payment_date
-                                })
-                        }
-                    );
-
-            }
-
-            // ===============================
-            // CREATE CONTRIBUTION
-            // ===============================
-
-            else {
-
-                response =
-                    await fetch(
-                        `/api/members/${selectedMemberId}/contributions`,
-                        {
-                            method:
-                                "POST",
-
-                            headers: {
-                                "Content-Type":
-                                    "application/json"
-                            },
-
-                            body:
-                                JSON.stringify({
-                                    amount,
-                                    payment_date
-                                })
-                        }
-                    );
-
-            }
 
             const data =
                 await response.json();
 
-            if (response.ok) {
+
+            if (!response.ok) {
 
                 alert(
-                    data.message
+                    data.error ||
+                    "Unable to record contribution."
                 );
 
-                contributionAmount.value =
-                    "";
-
-                paymentDate.value =
-                    "";
-
-                contributionForm.style.display =
-                    "none";
-
-                editingContributionId =
-                    null;
-
-                saveContributionButton.textContent =
-                    "Save Contribution";
-
-                await loadGroupSummary();
-
-                await loadMembers();
-
-            } else {
-
-                alert(
-                    data.error
-                );
+                return;
 
             }
+
+
+            alert(
+                data.message
+            );
+
+
+            contributionAmount.value =
+                "";
+
+            paymentDate.value =
+                "";
+
+            contributionForm.style.display =
+                "none";
+
+
+            await loadGroupSummary();
+
+            await loadCycleOverview();
+
+            await loadMembers();
+
 
         } catch (error) {
 
             console.error(
+                "Contribution error:",
                 error
             );
 
             alert(
-                "Unable to save contribution."
+                "Something went wrong."
             );
 
         }
@@ -1090,133 +1087,111 @@ saveContributionButton.addEventListener(
     }
 );
 
-// ===============================
-// SAVE OR UPDATE PAYOUT
-// ===============================
 
-savePayoutButton.addEventListener(
+// ======================================================
+// SAVE PAYOUT
+// ======================================================
+
+savePayout.addEventListener(
     "click",
-    async (event) => {
+    async () => {
 
-        event.preventDefault();
-
-        const amount =
-            Number(
-                payoutAmount.value
-            );
-
-        const payout_date =
-            payoutDate.value;
-
-        if (
-            !amount ||
-            amount <= 0 ||
-            !payout_date
-        ) {
+        if (!selectedPayoutMemberId) {
 
             alert(
-                "Enter a valid payout amount and payout date."
+                "Please select a member."
             );
 
             return;
 
         }
 
+
+        const amount =
+            Number(
+                payoutAmount.value
+            );
+
+        const date =
+            payoutDate.value;
+
+
+        if (
+            !amount ||
+            amount <= 0 ||
+            !date
+        ) {
+
+            alert(
+                "Enter a valid payout amount and date."
+            );
+
+            return;
+
+        }
+
+
         try {
 
-            let response;
+            const response =
+                await fetch(
+                    `/api/members/${selectedPayoutMemberId}/payouts`,
+                    {
+                        method: "POST",
 
-            // ===============================
-            // UPDATE PAYOUT
-            // ===============================
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
 
-            if (editingPayoutId) {
+                        body:
+                            JSON.stringify({
+                                amount: amount,
+                                payout_date: date
+                            })
+                    }
+                );
 
-                response =
-                    await fetch(
-                        `/api/members/payouts/${editingPayoutId}`,
-                        {
-                            method:
-                                "PUT",
-
-                            headers: {
-                                "Content-Type":
-                                    "application/json"
-                            },
-
-                            body:
-                                JSON.stringify({
-                                    amount,
-                                    payout_date
-                                })
-                        }
-                    );
-
-            }
-
-            // ===============================
-            // CREATE PAYOUT
-            // ===============================
-
-            else {
-
-                response =
-                    await fetch(
-                        `/api/members/${selectedMemberId}/payouts`,
-                        {
-                            method:
-                                "POST",
-
-                            headers: {
-                                "Content-Type":
-                                    "application/json"
-                            },
-
-                            body:
-                                JSON.stringify({
-                                    amount,
-                                    payout_date
-                                })
-                        }
-                    );
-
-            }
 
             const data =
                 await response.json();
 
-            if (response.ok) {
+
+            if (!response.ok) {
 
                 alert(
-                    data.message
+                    data.error ||
+                    "Unable to record payout."
                 );
 
-                payoutAmount.value =
-                    "";
-
-                payoutDate.value =
-                    "";
-
-                payoutForm.style.display =
-                    "none";
-
-                editingPayoutId =
-                    null;
-
-                savePayoutButton.textContent =
-                    "Save Payout";
-
-                await loadGroupSummary();
-
-                await loadMembers();
-
-            } else {
-
-                alert(
-                    data.error
-                );
+                return;
 
             }
+
+
+            alert(
+                data.message
+            );
+
+
+            payoutAmount.value =
+                "";
+
+            payoutDate.value =
+                "";
+
+            payoutForm.style.display =
+                "none";
+
+
+            await loadGroupSummary();
+
+            await loadCycleOverview();
+
+            await loadMembers();
+
+            await loadPayoutSchedule();
+
 
         } catch (error) {
 
@@ -1226,8 +1201,7 @@ savePayoutButton.addEventListener(
             );
 
             alert(
-                "Payout error: " +
-                error.message
+                "Something went wrong."
             );
 
         }
@@ -1235,26 +1209,226 @@ savePayoutButton.addEventListener(
     }
 );
 
-// ===============================
-// LOAD PAYOUT SCHEDULE
-// ===============================
 
-async function loadPayoutSchedule() {
+// ======================================================
+// SHOW SCHEDULE FORM
+// ======================================================
 
-    const payoutScheduleList =
-        document.getElementById(
-            "payoutScheduleList"
-        );
+addScheduleButton.addEventListener(
+    "click",
+    () => {
 
-    if (!payoutScheduleList) {
-
-        console.error(
-            "Payout schedule section not found."
-        );
-
-        return;
+        scheduleForm.style.display =
+            scheduleForm.style.display === "none"
+                ? "block"
+                : "none";
 
     }
+);
+
+
+// ======================================================
+// UPDATE SCHEDULE MEMBER OPTIONS
+// ======================================================
+
+function updateScheduleMembers(
+    members
+) {
+
+    scheduleMember.innerHTML = `
+        <option value="">
+            Select Member
+        </option>
+    `;
+
+
+    members.forEach(
+        member => {
+
+            const option =
+                document.createElement(
+                    "option"
+                );
+
+            option.value =
+                member.id;
+
+            option.textContent =
+                member.name;
+
+            scheduleMember.appendChild(
+                option
+            );
+
+        }
+    );
+
+}
+
+
+// ======================================================
+// SAVE PAYOUT SCHEDULE
+// ======================================================
+
+saveSchedule.addEventListener(
+    "click",
+    async () => {
+
+        const memberId =
+            scheduleMember.value;
+
+        const amount =
+            Number(
+                scheduleAmount.value
+            );
+
+        const date =
+            scheduleDate.value;
+
+
+        if (
+            !memberId ||
+            !amount ||
+            amount <= 0 ||
+            !date
+        ) {
+
+            alert(
+                "Select a member and enter a valid amount and date."
+            );
+
+            return;
+
+        }
+
+
+        try {
+
+            const response =
+                await fetch(
+                    "/api/schedule",
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body:
+                            JSON.stringify({
+                                group_id:
+                                    Number(groupId),
+
+                                member_id:
+                                    Number(memberId),
+
+                                amount:
+                                    amount,
+
+                                payout_date:
+                                    date
+                            })
+                    }
+                );
+
+
+            const data =
+                await response.json();
+
+
+            if (!response.ok) {
+
+                alert(
+                    data.error ||
+                    "Unable to create payout schedule."
+                );
+
+                return;
+
+            }
+
+
+            alert(
+                data.message
+            );
+
+
+            scheduleMember.value =
+                "";
+
+            scheduleAmount.value =
+                "";
+
+            scheduleDate.value =
+                "";
+
+            scheduleForm.style.display =
+                "none";
+
+
+            await loadPayoutSchedule();
+
+
+        } catch (error) {
+
+            console.error(
+                "Schedule error:",
+                error
+            );
+
+            alert(
+                "Something went wrong."
+            );
+
+        }
+
+    }
+);
+
+
+// ======================================================
+// LOAD PAYOUT SCHEDULE
+// ======================================================
+
+async function markScheduleAsPaid(scheduleId) {
+
+    try {
+
+        const response = await fetch(
+            `/api/schedule/${scheduleId}/status`,
+            {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    status: "Paid"
+                })
+            }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            alert(data.error || "Unable to mark payout as Paid.");
+            return;
+        }
+
+        alert(data.message);
+
+        await loadPayoutSchedule();
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert("Something went wrong.");
+
+    }
+}
+
+async function loadPayoutSchedule() {
 
     try {
 
@@ -1266,6 +1440,7 @@ async function loadPayoutSchedule() {
                 }
             );
 
+
         if (!response.ok) {
 
             throw new Error(
@@ -1274,315 +1449,102 @@ async function loadPayoutSchedule() {
 
         }
 
+
         const schedules =
             await response.json();
+
 
         payoutScheduleList.innerHTML =
             "";
 
+
         if (schedules.length === 0) {
 
-            payoutScheduleList.innerHTML =
-                "<p>No payout schedule yet.</p>";
+            payoutScheduleList.innerHTML = `
+                <p>
+                    No payout schedules.
+                </p>
+            `;
 
             return;
 
         }
 
+
         schedules.forEach(
             schedule => {
 
-                const row =
-                    document.createElement("div");
-
-                row.className =
-                    "payout-schedule-row";
-
-                // ===============================
-                // SCHEDULE INFORMATION
-                // ===============================
-
-                const info =
-                    document.createElement("div");
-
-                info.innerHTML = `
-                    <p>
-                        <strong>
-                            Member:
-                        </strong>
-                        ${schedule.member_name}
-                    </p>
-
-                    <p>
-                        <strong>
-                            Amount:
-                        </strong>
-                        ₦${Number(
-                            schedule.amount
-                        ).toLocaleString()}
-                    </p>
-
-                    <p>
-                        <strong>
-                            Date:
-                        </strong>
-                        ${schedule.payout_date}
-                    </p>
-
-                    <p>
-                        <strong>
-                            Status:
-                        </strong>
-                        ${schedule.status}
-                    </p>
-                `;
-
-                row.appendChild(
-                    info
-                );
-
-                // ===============================
-                // BUTTON CONTAINER
-                // ===============================
-
-                const buttons =
-                    document.createElement("div");
-
-                // ===============================
-                // EDIT BUTTON
-                // ===============================
-
-                const editButton =
-                    document.createElement("button");
-
-                editButton.textContent =
-                    "Edit";
-
-                editButton.addEventListener(
-                    "click",
-                    () => {
-
-                        scheduleForm.style.display =
-                            "block";
-
-                        scheduleMember.value =
-                            schedule.member_id;
-
-                        scheduleAmount.value =
-                            schedule.amount;
-
-                        scheduleDate.value =
-                            schedule.payout_date;
-
-                        saveScheduleButton.textContent =
-                            "Update Schedule";
-
-                        editingScheduleId =
-                            schedule.id;
-
-                        // Prevent past dates
-                        const today =
-                            new Date()
-                                .toISOString()
-                                .split("T")[0];
-
-                        scheduleDate.min =
-                            today;
-
-                        scheduleMember.focus();
-
-                    }
-                );
-
-                buttons.appendChild(
-                    editButton
-                );
-
-                // ===============================
-                // DELETE BUTTON
-                // ===============================
-
-                const deleteButton =
-                    document.createElement("button");
-
-                deleteButton.textContent =
-                    "Delete";
-
-                deleteButton.addEventListener(
-                    "click",
-                    async () => {
-
-                        const confirmed =
-                            confirm(
-                                `Delete the payout schedule for ${schedule.member_name}?`
-                            );
-
-                        if (!confirmed) {
-                            return;
-                        }
-
-                        try {
-
-                            const deleteResponse =
-                                await fetch(
-                                    `/api/schedule/${schedule.id}`,
-                                    {
-                                        method:
-                                            "DELETE"
-                                    }
-                                );
-
-                            const data =
-                                await deleteResponse.json();
-
-                            if (
-                                deleteResponse.ok
-                            ) {
-
-                                alert(
-                                    data.message
-                                );
-
-                                await loadPayoutSchedule();
-
-                            } else {
-
-                                alert(
-                                    data.error
-                                );
-
-                            }
-
-                        } catch (error) {
-
-                            console.error(
-                                error
-                            );
-
-                            alert(
-                                "Unable to delete schedule."
-                            );
-
-                        }
-
-                    }
-                );
-
-                buttons.appendChild(
-                    deleteButton
-                );
-
-                // ===============================
-                // MARK AS PAID
-                // ===============================
-
-                if (
-                    schedule.status ===
-                    "Pending"
-                ) {
-
-                    const paidButton =
-                        document.createElement(
-                            "button"
-                        );
-
-                    paidButton.textContent =
-                        "Mark as Paid";
-
-                    paidButton.addEventListener(
-                        "click",
-                        async () => {
-
-                            try {
-
-                                const paidResponse =
-                                    await fetch(
-                                        `/api/schedule/${schedule.id}/status`,
-                                        {
-                                            method:
-                                                "PATCH",
-
-                                            headers: {
-                                                "Content-Type":
-                                                    "application/json"
-                                            },
-
-                                            body:
-                                                JSON.stringify({
-                                                    status:
-                                                        "Paid"
-                                                }),
-
-                                            cache:
-                                                "no-store"
-                                        }
-                                    );
-
-                                const data =
-                                    await paidResponse.json();
-
-                                if (
-                                    paidResponse.ok
-                                ) {
-
-                                    alert(
-                                        data.message
-                                    );
-
-                                    // =================================
-                                    // IMPORTANT:
-                                    // Reload everything from database
-                                    // =================================
-
-                                    await loadGroupSummary();
-
-                                    await loadMembers();
-
-                                    await loadCycleOverview();
-
-                                    await loadPayoutSchedule();
-
-                                } else {
-
-                                    alert(
-                                        data.error ||
-                                        "Unable to mark payout as Paid."
-                                    );
-
-                                }
-
-                            } catch (error) {
-
-                                console.error(
-                                    "Mark as Paid error:",
-                                    error
-                                );
-
-                                alert(
-                                    "Unable to update schedule."
-                                );
-
-                            }
-
-                        }
+                const item =
+                    document.createElement(
+                        "div"
                     );
 
-                    buttons.appendChild(
-                        paidButton
-                    );
+                item.className =
+                    "card";
 
-                }
 
-                row.appendChild(
-                    buttons
-                );
+                item.innerHTML = `
+    <h3>
+        ${schedule.member_name}
+    </h3>
+
+    <p>
+        Amount: ₦${Number(schedule.amount).toLocaleString()}
+    </p>
+
+    <p>
+        Date: ${schedule.payout_date}
+    </p>
+
+    <p>
+        Status: ${schedule.status}
+    </p>
+
+    <div class="schedule-action">
+
+        ${
+            schedule.status === "Pending"
+                ? `
+                    <button
+                        type="button"
+                        class="mark-paid-button"
+                        data-id="${schedule.id}"
+                    >
+                        Mark as Paid
+                    </button>
+                  `
+                : `
+                    <button
+                        type="button"
+                        disabled
+                    >
+                        Paid
+                    </button>
+                  `
+        }
+
+    </div>
+`;
+
+const markPaidButton =
+    item.querySelector(".mark-paid-button");
+
+if (markPaidButton) {
+
+    markPaidButton.addEventListener(
+        "click",
+        () => markScheduleAsPaid(schedule.id)
+    );
+
+}
 
                 payoutScheduleList.appendChild(
-                    row
+                    item
                 );
 
             }
         );
+
 
     } catch (error) {
 
@@ -1591,628 +1553,9 @@ async function loadPayoutSchedule() {
             error
         );
 
-        payoutScheduleList.innerHTML =
-            "<p>Unable to load payout schedule.</p>";
-
-    }
-
-}
-
-// ===============================
-// ADD PAYOUT SCHEDULE
-// ===============================
-
-addScheduleButton.addEventListener(
-    "click",
-    () => {
-
-        editingScheduleId =
-            null;
-
-        saveScheduleButton.textContent =
-            "Save Schedule";
-
-        // ===============================
-        // TODAY'S DATE
-        // ===============================
-
-        const today =
-            new Date()
-                .toISOString()
-                .split("T")[0];
-
-        // ===============================
-        // PREVENT PAST DATE
-        // ===============================
-
-        scheduleDate.min =
-            today;
-
-        // Clear previous values
-
-        scheduleMember.value =
-            "";
-
-        scheduleAmount.value =
-            "";
-
-        scheduleDate.value =
-            "";
-
-        scheduleForm.style.display =
-            "block";
-
-        scheduleMember.focus();
-
-    }
-);
-
-// ===============================
-// SAVE OR UPDATE PAYOUT SCHEDULE
-// ===============================
-
-saveScheduleButton.addEventListener(
-    "click",
-    async (event) => {
-
-        event.preventDefault();
-
-        const memberId =
-            scheduleMember.value;
-
-        const amount =
-            Number(
-                scheduleAmount.value
-            );
-
-        const payoutDate =
-            scheduleDate.value;
-
-        const today =
-            new Date()
-                .toISOString()
-                .split("T")[0];
-
-        // ===============================
-        // VALIDATE INPUT
-        // ===============================
-
-        if (
-            !memberId ||
-            !amount ||
-            amount <= 0 ||
-            !payoutDate
-        ) {
-
-            alert(
-                "Please select a member, enter an amount and choose a payout date."
-            );
-
-            return;
-
-        }
-
-        // ===============================
-        // PREVENT PAST DATE
-        // ===============================
-
-        if (
-            payoutDate <
-            today
-        ) {
-
-            alert(
-                "Payout date cannot be in the past."
-            );
-
-            return;
-
-        }
-
-        try {
-
-            let response;
-
-            // ===============================
-            // UPDATE EXISTING SCHEDULE
-            // ===============================
-
-            if (
-                editingScheduleId
-            ) {
-
-                response =
-                    await fetch(
-                        `/api/schedule/${editingScheduleId}`,
-                        {
-                            method:
-                                "PUT",
-
-                            headers: {
-                                "Content-Type":
-                                    "application/json"
-                            },
-
-                            body:
-                                JSON.stringify({
-
-                                    member_id:
-                                        Number(
-                                            memberId
-                                        ),
-
-                                    amount,
-
-                                    payout_date:
-                                        payoutDate,
-
-                                    status:
-                                        "Pending"
-
-                                }),
-
-                            cache:
-                                "no-store"
-                        }
-                    );
-
-            }
-
-            // ===============================
-            // CREATE NEW SCHEDULE
-            // ===============================
-
-            else {
-
-                response =
-                    await fetch(
-                        "/api/schedule",
-                        {
-                            method:
-                                "POST",
-
-                            headers: {
-                                "Content-Type":
-                                    "application/json"
-                            },
-
-                            body:
-                                JSON.stringify({
-
-                                    group_id:
-                                        Number(
-                                            groupId
-                                        ),
-
-                                    member_id:
-                                        Number(
-                                            memberId
-                                        ),
-
-                                    amount,
-
-                                    payout_date:
-                                        payoutDate
-
-                                }),
-
-                            cache:
-                                "no-store"
-                        }
-                    );
-
-            }
-
-            // ===============================
-            // READ SERVER RESPONSE
-            // SAFELY
-            // ===============================
-
-            const responseText =
-                await response.text();
-
-            let data;
-
-            try {
-
-                data =
-                    JSON.parse(
-                        responseText
-                    );
-
-            } catch (parseError) {
-
-                console.error(
-                    "Server returned non-JSON:",
-                    responseText
-                );
-
-                alert(
-                    "Server response was not JSON:\n\n" +
-                    responseText
-                );
-
-                return;
-
-            }
-
-            // ===============================
-            // SUCCESS
-            // ===============================
-
-            if (
-                response.ok
-            ) {
-
-                alert(
-                    data.message
-                );
-
-                scheduleMember.value =
-                    "";
-
-                scheduleAmount.value =
-                    "";
-
-                scheduleDate.value =
-                    "";
-
-                scheduleForm.style.display =
-                    "none";
-
-                saveScheduleButton.textContent =
-                    "Save Schedule";
-
-                editingScheduleId =
-                    null;
-
-                await loadPayoutSchedule();
-
-            }
-
-            // ===============================
-            // SERVER ERROR
-            // ===============================
-
-            else {
-
-                alert(
-                    data.error ||
-                    "Unable to save payout schedule."
-                );
-
-            }
-
-        } catch (error) {
-
-            console.error(
-                "Schedule error:",
-                error
-            );
-
-            alert(
-                "Schedule error: " +
-                error.message
-            );
-
-        }
-
-    }
-);
-
-// =========================================
-// LOAD AJO CYCLE OVERVIEW
-// =========================================
-
-async function loadCycleOverview() {
-
-    const cycleOverview =
-        document.getElementById(
-            "cycleOverview"
-        );
-
-    if (!cycleOverview) {
-
-        console.error(
-            "Cycle overview section not found."
-        );
-
-        return;
-    }
-
-    try {
-
-        const response =
-            await fetch(
-                `/api/groups/${groupId}/cycle-overview`
-            );
-
-        if (!response.ok) {
-
-            throw new Error(
-                "Failed to load cycle overview."
-            );
-
-        }
-
-        const data =
-            await response.json();
-
-
-        const cycle =
-            data.cycle;
-
-        const group =
-            data.group;
-
-        const members =
-            data.members;
-
-
-        // =====================================
-        // DETERMINE STATUS CLASS
-        // =====================================
-
-        let statusClass =
-            "no-contributions";
-
-        if (
-            cycle.status === "On Track"
-        ) {
-
-            statusClass =
-                "on-track";
-
-        } else if (
-            cycle.status ===
-            "Needs Attention"
-        ) {
-
-            statusClass =
-                "attention";
-
-        }
-
-
-        // =====================================
-        // BUILD OVERVIEW
-        // =====================================
-
-        cycleOverview.innerHTML = `
-
-            <div class="cycle-summary-grid">
-
-                <div class="cycle-summary-card">
-
-                    <h3>
-                        Contribution Per Cycle
-                    </h3>
-
-                    <p>
-                        ₦${Number(
-                            group.contributionAmount
-                        ).toLocaleString()}
-                    </p>
-
-                </div>
-
-
-                <div class="cycle-summary-card">
-
-                    <h3>
-                        Expected Contribution
-                    </h3>
-
-                    <p>
-                        ₦${Number(
-                            cycle.totalExpected
-                        ).toLocaleString()}
-                    </p>
-
-                </div>
-
-
-                <div class="cycle-summary-card">
-
-                    <h3>
-                        Actual Contribution
-                    </h3>
-
-                    <p>
-                        ₦${Number(
-                            cycle.totalActual
-                        ).toLocaleString()}
-                    </p>
-
-                </div>
-
-
-                <div class="cycle-summary-card">
-
-                    <h3>
-                        Outstanding
-                    </h3>
-
-                    <p>
-                        ₦${Number(
-                            cycle.outstanding
-                        ).toLocaleString()}
-                    </p>
-
-                </div>
-
-
-                <div class="cycle-summary-card">
-
-                    <h3>
-                        Frequency
-                    </h3>
-
-                    <p>
-                        ${group.frequency}
-                    </p>
-
-                </div>
-
-
-                <div class="cycle-summary-card">
-
-                    <h3>
-                        Cycle
-                    </h3>
-
-                    <p>
-                        ${cycle.elapsedCycles}
-                    </p>
-
-                </div>
-
-            </div>
-
-
-            <div class="cycle-progress-container">
-
-                <strong>
-                    Contribution Progress:
-                    ${cycle.progress}%
-                </strong>
-
-                <div class="cycle-progress-bar">
-
-                    <div
-                        class="cycle-progress-fill"
-                        style="
-                            width:
-                            ${cycle.progress}%;
-                        "
-                    ></div>
-
-                </div>
-
-
-                <span
-                    class="
-                        cycle-status
-                        ${statusClass}
-                    "
-                >
-                    ${cycle.status}
-                </span>
-
-            </div>
-
-
-            <div class="member-contribution-status">
-
-                <h3>
-                    Member Contribution Status
-                </h3>
-
-
-                <div
-                    class="
-                        member-cycle-row
-                        member-cycle-header
-                    "
-                >
-
-                    <div>
-                        Member
-                    </div>
-
-                    <div>
-                        Expected
-                    </div>
-
-                    <div>
-                        Actual
-                    </div>
-
-                    <div>
-                        Status
-                    </div>
-
-                </div>
-
-                ${members.map(
-                    member => {
-
-                        let memberStatusClass =
-                            "member-status-not-paid";
-
-
-                        if (
-                            member.status ===
-                            "Paid"
-                        ) {
-
-                            memberStatusClass =
-                                "member-status-paid";
-
-                        } else if (
-                            member.status ===
-                            "Partially Paid"
-                        ) {
-
-                            memberStatusClass =
-                                "member-status-partial";
-
-                        }
-
-
-                        return `
-
-                            <div
-                                class="
-                                    member-cycle-row
-                                "
-                            >
-
-                                <div>
-                                    ${member.member_name}
-                                </div>
-
-                                <div>
-                                    ₦${Number(
-                                        member.expected
-                                    ).toLocaleString()}
-                                </div>
-
-                                <div>
-                                    ₦${Number(
-                                        member.actual
-                                    ).toLocaleString()}
-                                </div>
-
-                                <div
-                                    class="
-                                        ${memberStatusClass}
-                                    "
-                                >
-                                    ${member.status}
-                                </div>
-
-                            </div>
-
-                        `;
-
-                    }
-                ).join("")}
-
-            </div>
-
-        `;
-
-    } catch (error) {
-
-        console.error(
-            "Cycle overview error:",
-            error
-        );
-
-        cycleOverview.innerHTML = `
+        payoutScheduleList.innerHTML = `
             <p>
-                Unable to load cycle overview.
+                Unable to load payout schedule.
             </p>
         `;
 
@@ -2220,11 +1563,37 @@ async function loadCycleOverview() {
 
 }
 
-// ===============================
-// INITIAL LOAD
-// ===============================
 
-loadGroupSummary();
-loadMembers();
-loadPayoutSchedule();
-loadCycleOverview();
+// ======================================================
+// LOAD EVERYTHING
+// ======================================================
+
+async function loadGroupPage() {
+
+    if (!groupId) {
+        return;
+    }
+
+
+    await Promise.all([
+
+        loadGroupSummary(),
+
+        loadCycleOverview(),
+
+        loadMembers(),
+
+        
+
+        loadPayoutSchedule()
+
+    ]);
+
+}
+
+
+// ======================================================
+// INITIAL LOAD
+// ======================================================
+
+loadGroupPage();

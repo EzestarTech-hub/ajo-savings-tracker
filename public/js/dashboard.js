@@ -2,7 +2,6 @@
 // AJO SAVINGS TRACKER - DASHBOARD
 // ======================================================
 
-
 // ======================================================
 // GET HTML ELEMENTS
 // ======================================================
@@ -43,7 +42,6 @@ const pendingCount =
 const refreshDashboard =
     document.getElementById("refreshDashboard");
 
-
 // ======================================================
 // FORMAT MONEY
 // ======================================================
@@ -55,7 +53,6 @@ function formatMoney(amount) {
     ).toLocaleString()}`;
 
 }
-
 
 // ======================================================
 // LOAD DASHBOARD SUMMARY
@@ -89,31 +86,60 @@ async function loadDashboardSummary() {
         // UPDATE SUMMARY CARDS
         // ===============================
 
-        totalGroups.textContent =
-            data.totalGroups;
+        if (totalGroups) {
 
-        totalMembers.textContent =
-            data.totalMembers;
+            totalGroups.textContent =
+                data.totalGroups;
 
-        totalContributions.textContent =
-            formatMoney(
-                data.totalContributions
-            );
+        }
 
-        totalPayouts.textContent =
-            formatMoney(
-                data.totalPayouts
-            );
 
-        availableBalance.textContent =
-            formatMoney(
-                data.availableBalance
-            );
+        if (totalMembers) {
 
-        pendingPayouts.textContent =
-            formatMoney(
-                data.pendingPayouts
-            );
+            totalMembers.textContent =
+                data.totalMembers;
+
+        }
+
+
+        if (totalContributions) {
+
+            totalContributions.textContent =
+                formatMoney(
+                    data.totalContributions
+                );
+
+        }
+
+
+        if (totalPayouts) {
+
+            totalPayouts.textContent =
+                formatMoney(
+                    data.totalPayouts
+                );
+
+        }
+
+
+        if (availableBalance) {
+
+            availableBalance.textContent =
+                formatMoney(
+                    data.availableBalance
+                );
+
+        }
+
+
+        if (pendingPayouts) {
+
+            pendingPayouts.textContent =
+                formatMoney(
+                    data.pendingPayouts
+                );
+
+        }
 
 
     } catch (error) {
@@ -126,7 +152,6 @@ async function loadDashboardSummary() {
     }
 
 }
-
 
 // ======================================================
 // LOAD AJO HEALTH
@@ -160,51 +185,64 @@ async function loadDashboardHealth() {
         // UPDATE HEALTH STATUS
         // ===============================
 
-        healthStatus.textContent =
-            data.status;
+        if (healthStatus) {
 
-        healthMessage.textContent =
-            data.message;
+            healthStatus.textContent =
+                data.status;
+
+        }
+
+
+        if (healthMessage) {
+
+            healthMessage.textContent =
+                data.message;
+
+        }
 
 
         // ===============================
         // UPDATE HEALTH CLASS
         // ===============================
 
-        healthCard.className =
-            "health-card";
+        if (healthCard) {
+
+            healthCard.className =
+                "health-card";
 
 
-        if (
-            data.status ===
-            "Healthy"
-        ) {
+            if (
+                data.status ===
+                "Healthy"
+            ) {
 
-            healthCard.classList.add(
-                "healthy"
-            );
+                healthCard.classList.add(
+                    "healthy"
+                );
 
-        }
+            }
 
-        else if (
-            data.status ===
-            "Attention Needed"
-        ) {
+            else if (
+                data.status ===
+                "Attention Needed"
+            ) {
 
-            healthCard.classList.add(
-                "attention"
-            );
+                healthCard.classList.add(
+                    "attention"
+                );
 
-        }
+            }
 
-        else if (
-            data.status ===
-            "At Risk"
-        ) {
+            else if (
+                data.status ===
+                "At Risk"
+            ) {
 
-            healthCard.classList.add(
-                "at-risk"
-            );
+                healthCard.classList.add(
+                    "at-risk"
+                );
+
+            }
 
         }
 
@@ -216,16 +254,25 @@ async function loadDashboardHealth() {
             error
         );
 
-        healthStatus.textContent =
-            "Unable to load";
 
-        healthMessage.textContent =
-            "Could not load Ajo health information.";
+        if (healthStatus) {
+
+            healthStatus.textContent =
+                "Unable to load";
+
+        }
+
+
+        if (healthMessage) {
+
+            healthMessage.textContent =
+                "Could not load Ajo health information.";
+
+        }
 
     }
 
 }
-
 
 // ======================================================
 // LOAD UPCOMING PAYOUTS
@@ -259,8 +306,12 @@ async function loadUpcomingPayouts() {
         // UPDATE PENDING COUNT
         // ===============================
 
-        pendingCount.textContent =
-            `${payouts.length} pending`;
+        if (pendingCount) {
+
+            pendingCount.textContent =
+                `${payouts.length} pending`;
+
+        }
 
 
         // ===============================
@@ -271,11 +322,15 @@ async function loadUpcomingPayouts() {
             payouts.length === 0
         ) {
 
-            upcomingPayouts.innerHTML = `
-                <p>
-                    No upcoming payouts.
-                </p>
-            `;
+            if (upcomingPayouts) {
+
+                upcomingPayouts.innerHTML = `
+                    <p>
+                        No upcoming payouts.
+                    </p>
+                `;
+
+            }
 
             return;
 
@@ -286,8 +341,12 @@ async function loadUpcomingPayouts() {
         // DISPLAY PAYOUTS
         // ===============================
 
-        upcomingPayouts.innerHTML =
-            "";
+        if (upcomingPayouts) {
+
+            upcomingPayouts.innerHTML =
+                "";
+
+        }
 
 
         payouts.forEach(
@@ -297,6 +356,7 @@ async function loadUpcomingPayouts() {
                     document.createElement(
                         "div"
                     );
+
 
                 item.className =
                     "payout-item";
@@ -338,9 +398,13 @@ async function loadUpcomingPayouts() {
                 `;
 
 
-                upcomingPayouts.appendChild(
-                    item
-                );
+                if (upcomingPayouts) {
+
+                    upcomingPayouts.appendChild(
+                        item
+                    );
+
+                }
 
             }
         );
@@ -353,19 +417,28 @@ async function loadUpcomingPayouts() {
             error
         );
 
-        upcomingPayouts.innerHTML = `
-            <p>
-                Unable to load payout schedule.
-            </p>
-        `;
 
-        pendingCount.textContent =
-            "0 pending";
+        if (upcomingPayouts) {
+
+            upcomingPayouts.innerHTML = `
+                <p>
+                    Unable to load payout schedule.
+                </p>
+            `;
+
+        }
+
+
+        if (pendingCount) {
+
+            pendingCount.textContent =
+                "0 pending";
+
+        }
 
     }
 
 }
-
 
 // ======================================================
 // LOAD EVERYTHING
@@ -385,7 +458,6 @@ async function loadDashboard() {
 
 }
 
-
 // ======================================================
 // REFRESH BUTTON
 // ======================================================
@@ -398,7 +470,6 @@ if (refreshDashboard) {
     );
 
 }
-
 
 // ======================================================
 // INITIAL LOAD
