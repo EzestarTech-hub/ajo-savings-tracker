@@ -6,11 +6,14 @@ const groupsRouter = require("./routes/groups");
 const dashboardRouter = require("./routes/dashboard");
 const membersRouter = require("./routes/members");
 const contributionsRouter = require("./routes/contributions");
+const reportsRouter = require("./routes/reports");
 const app = express();
 
 const PORT = 3000;
 const payoutsRouter = require("./routes/payouts");
 const scheduleRouter = require("./routes/schedule");
+const loansRouter = require("./routes/loans");
+
 
 // Middleware
 app.use(express.json());
@@ -21,8 +24,10 @@ app.use("/api/groups", groupsRouter);
 app.use("/api/dashboard", dashboardRouter);
 app.use("/api/groups", membersRouter);
 app.use("/api/members", contributionsRouter);
-app.use("/api/members", payoutsRouter);
+ app.use("/api/members", payoutsRouter);
 app.use("/api/schedule", scheduleRouter);
+app.use("/api/loans", loansRouter);
+app.use("/api/reports", reportsRouter);
 
 // Home route
 app.get("/", (req, res) => {

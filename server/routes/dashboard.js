@@ -545,4 +545,263 @@ router.get(
 );
 
 
+// ======================================================
+// GET LOAN DASHBOARD SUMMARY
+// ======================================================
+
+router.get("/loans", (req, res) => {
+
+    const sql = `
+        SELECT
+
+            /* TOTAL NUMBER OF LOANS */
+            (
+                SELECT COUNT(*)
+                FROM loans
+            ) AS totalLoans,
+
+            /* ACTIVE LOANS */
+            (
+                SELECT COUNT(*)
+                FROM loans
+                WHERE status = 'Active'
+            ) AS activeLoans,
+
+            /* TOTAL PRINCIPAL LOANED */
+            (
+                SELECT COALESCE(
+                    SUM(principal_amount),
+                    0
+                )
+                FROM loans
+            ) AS totalLoaned,
+
+            /* CURRENT OUTSTANDING BALANCE */
+            (
+                SELECT COALESCE(
+                    SUM(outstanding_balance),
+                    0
+                )
+                FROM loans
+                WHERE status = 'Active'
+            ) AS outstandingLoans,
+
+            /* TOTAL REPAYMENTS RECEIVED */
+            (
+                SELECT COALESCE(
+                    SUM(amount),
+                    0
+                )
+                FROM loan_repayments
+            ) AS totalLoanRepayments,
+
+            /* TOTAL INTEREST */
+            (
+                SELECT COALESCE(
+                    SUM(interest_amount),
+                    0
+                )
+                FROM loans
+            ) AS totalInterest
+
+    `;
+
+    db.get(sql, [], (err, row) => {
+
+        if (err) {
+
+            console.error(
+                "Dashboard loan summary error:",
+                err
+            );
+
+            return res.status(500).json({
+                error: err.message
+            });
+
+        }
+
+        return res.json({
+
+            totalLoans:
+                Number(row.totalLoans || 0),
+
+            activeLoans:
+                Number(row.activeLoans || 0),
+
+            totalLoaned:
+                Number(row.totalLoaned || 0),
+
+            outstandingLoans:
+                Number(row.outstandingLoans || 0),
+
+            totalLoanRepayments:
+                Number(row.totalLoanRepayments || 0),
+
+            totalInterest:
+                Number(row.totalInterest || 0)
+
+        });
+
+    });
+
+});
+
+// ======================================================
+// GET LOAN DASHBOARD ACTIVITY
+// ======================================================
+
+router.get("/loan-activity", (req, res) => {
+
+    const sql = `
+        SELECT
+            loans.id,
+            loans.principal_amount,
+            loans.interest_rate,
+            loans.interest_amount,
+            loans.total_amount,
+            loans.total_repayment,
+            loans.amount_repaid,
+            loans.outstanding_balance,
+            loans.status,
+            loans.loan_date,
+
+            COALESCE(
+                loans.due_date,
+                (
+                    SELECT MAX(due_date)
+                    FROM loan_repayment_schedule
+                    WHERE loan_id = loans.id
+                )
+            ) AS due_date,
+
+            members.name AS member_name,
+            groups.name AS group_name
+
+        FROM loans
+
+        INNER JOIN members
+            ON members.id = loans.member_id
+
+        INNER JOIN groups
+            ON groups.id = loans.group_id
+
+        ORDER BY loans.id DESC
+
+        LIMIT 20
+    `;
+
+    db.all(sql, [], (err, rows) => {
+
+        if (err) {
+
+            console.error(
+                "Dashboard loan activity error:",
+                err
+            );
+
+            return res.status(500).json({
+                error: err.message
+            });
+
+        }
+
+        const result = rows.map(loan => {
+
+            const totalRepayment =
+                Number(
+                    loan.total_repayment || 0
+                );
+
+            const amountRepaid =
+                Number(
+                    loan.amount_repaid || 0
+                );
+
+            let repaymentProgress = 0;
+
+            if (totalRepayment > 0) {
+
+                repaymentProgress =
+                    (
+                        amountRepaid /
+                        totalRepayment
+                    ) * 100;
+
+            }
+
+            repaymentProgress =
+                Math.min(
+                    100,
+                    Math.max(
+                        0,
+                        repaymentProgress
+                    )
+                );
+
+            return {
+
+                id:
+                    loan.id,
+
+                memberName:
+                    loan.member_name,
+
+                groupName:
+                    loan.group_name,
+
+                principalAmount:
+                    Number(
+                        loan.principal_amount || 0
+                    ),
+
+                interestRate:
+                    Number(
+                        loan.interest_rate || 0
+                    ),
+
+                interestAmount:
+                    Number(
+                        loan.interest_amount || 0
+                    ),
+
+                totalAmount:
+                    Number(
+                        loan.total_amount || 0
+                    ),
+
+                totalRepayment,
+
+                amountRepaid,
+
+                outstandingBalance:
+                    Number(
+                        loan.outstanding_balance || 0
+                    ),
+
+                repaymentProgress:
+                    Number(
+                        repaymentProgress.toFixed(2)
+                    ),
+
+                status:
+                    loan.status,
+
+                loanDate:
+                    loan.loan_date,
+
+                dueDate:
+                    loan.due_date
+
+            };
+
+        });
+
+        return res.json(result);
+
+    });
+
+});
+
+
 module.exports = router;

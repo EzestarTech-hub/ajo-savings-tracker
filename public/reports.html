@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Ajo Savings Tracker - Reports</title>
+
+    <link rel="stylesheet" href="css/reports.css">
+</head>
+
+<body>
+
+    <h1>Ajo Savings Tracker Reports</h1>
+
+    <nav>
+        <a href="dashboard.html">Dashboard</a>
+    </nav>
+
+    <!-- Contribution Summary -->
+    <section>
+        <h2>Contribution Summary</h2>
+
+        <div class="summary-grid">
+
+            <div class="summary-card">
+                <span>Total Contribution Records</span>
+                <strong id="contributionCount">0</strong>
+            </div>
+
+            <div class="summary-card">
+                <span>Total Contributions</span>
+                <strong id="totalContributions">₦0</strong>
+            </div>
+
+        </div>
+    </section>
+
+
+    <!-- Loan Summary -->
+    <section>
+        <h2>Loan Summary</h2>
+
+        <div class="summary-grid">
+
+            <div class="summary-card">
+                <span>Total Loans</span>
+                <strong id="totalLoans">0</strong>
+            </div>
+
+            <div class="summary-card">
+                <span>Active Loans</span>
+                <strong id="activeLoans">0</strong>
+            </div>
+
+            <div class="summary-card">
+                <span>Paid Loans</span>
+                <strong id="paidLoans">0</strong>
+            </div>
+
+            <div class="summary-card">
+                <span>Total Loaned</span>
+                <strong id="totalLoaned">₦0</strong>
+            </div>
+
+            <div class="summary-card">
+                <span>Total Interest</span>
+                <strong id="totalInterest">₦0</strong>
+            </div>
+
+            <div class="summary-card">
+                <span>Total Repaid</span>
+                <strong id="totalRepaid">₦0</strong>
+            </div>
+
+            <div class="summary-card">
+                <span>Total Outstanding</span>
+                <strong id="totalOutstanding">₦0</strong>
+            </div>
+
+        </div>
+    </section>
+
+
+    <!-- Payout Summary -->
+    <section>
+        <h2>Payout Summary</h2>
+
+        <div
+            class="summary-grid"
+            id="payoutSummary"
+        >
+
+            <div class="summary-card">
+                <span>Payout Records</span>
+                <strong>Loading...</strong>
+            </div>
+
+            <div class="summary-card">
+                <span>Total Payouts</span>
+                <strong>Loading...</strong>
+            </div>
+
+        </div>
+    </section>
+
+
+    <!-- Contributions by Group -->
+    <section>
+        <h2>Contributions by Group</h2>
+
+        <div
+            class="report-list"
+            id="contributionsByGroup"
+        >
+            <p>Loading...</p>
+        </div>
+    </section>
+
+
+    <!-- Contributions by Member -->
+    <section>
+        <h2>Contributions by Member</h2>
+
+        <div
+            class="report-list"
+            id="contributionsByMember"
+        >
+            <p>Loading...</p>
+        </div>
+    </section>
+
+
+    <!-- Loans by Group -->
+    <section>
+        <h2>Loans by Group</h2>
+
+        <div
+            class="report-list"
+            id="loansByGroup"
+        >
+            <p>Loading...</p>
+        </div>
+    </section>
+
+
+    <!-- Loans by Member -->
+    <section>
+        <h2>Loans by Member</h2>
+
+        <div
+            class="report-list"
+            id="loansByMember"
+        >
+            <p>Loading...</p>
+        </div>
+    </section>
+
+
+    <!-- Payouts by Group -->
+    <section>
+        <h2>Payouts by Group</h2>
+
+        <div
+            class="report-list"
+            id="payoutsByGroup"
+        >
+            <p>Loading...</p>
+        </div>
+    </section>
+
+
+    <!-- Payouts by Member -->
+    <section>
+        <h2>Payouts by Member</h2>
+
+        <div
+            class="report-list"
+            id="payoutsByMember"
+        >
+            <p>Loading...</p>
+        </div>
+    </section>
+
+
+    <script src="js/reports.js"></script>
+
+</body>
+
+</html>

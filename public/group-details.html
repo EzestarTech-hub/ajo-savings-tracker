@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Ajo Savings Tracker - Group Details</title>
+
+    <link
+        rel="stylesheet"
+        href="css/group-details.css"
+    >
+
+</head>
+
+<body>
+
+    <!-- =====================================================
+         PAGE HEADER
+    ====================================================== -->
+
+    <header>
+
+        <h1>
+            Ajo Savings Tracker
+        </h1>
+
+        <p>
+            Group Details
+        </p>
+
+        <button
+            type="button"
+            onclick="location.reload()"
+        >
+            Refresh
+        </button>
+
+    </header>
+
+
+    <!-- =====================================================
+         NAVIGATION
+    ====================================================== -->
+
+    <nav>
+
+        <a href="dashboard.html">
+            Dashboard
+        </a>
+
+        <a href="reports.html">
+            Reports
+        </a>
+
+        <a href="groups.html">
+            Groups
+        </a>
+
+    </nav>
+
+
+    <!-- =====================================================
+         GROUP INFORMATION
+    ====================================================== -->
+
+    <main>
+
+        <section>
+
+            <h2 id="groupName">
+                Loading group...
+            </h2>
+
+            <div class="summary-grid">
+
+                <div class="card">
+
+                    <h3>
+                        Members
+                    </h3>
+
+                    <p id="memberCount">
+                        0
+                    </p>
+
+                </div>
+
+
+                <div class="card">
+
+                    <h3>
+                        Total Contribution
+                    </h3>
+
+                    <p id="totalContribution">
+                        ₦0
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             CYCLE OVERVIEW
+        ================================================== -->
+
+        <section>
+
+            <h2>
+                Ajo Cycle / Contribution Overview
+            </h2>
+
+            <div
+                id="cycleOverview"
+                class="summary-grid"
+            >
+
+                <p>
+                    Loading cycle information...
+                </p>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             MEMBERS
+        ================================================== -->
+
+        <section>
+
+            <div class="section-header">
+
+                <h2>
+                    Members
+                </h2>
+
+                <button
+                    type="button"
+                    id="addMember"
+                >
+                    + Add Member
+                </button>
+
+            </div>
+
+
+            <!-- ADD MEMBER FORM -->
+
+            <div
+                id="memberForm"
+                class="card"
+                style="display: none;"
+            >
+
+                <h3>
+                    Add Member
+                </h3>
+
+                <label for="memberName">
+                    Member Name
+                </label>
+
+                <input
+                    type="text"
+                    id="memberName"
+                    placeholder="Enter member name"
+                >
+
+                <button
+                    type="button"
+                    id="saveMember"
+                >
+                    Save Member
+                </button>
+
+            </div>
+
+
+            <!-- MEMBER LIST -->
+
+            <div id="memberList">
+
+                <p>
+                    Loading members...
+                </p>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             CONTRIBUTION FORM
+        ================================================== -->
+
+        <section
+            id="contributionForm"
+            class="card"
+            style="display: none;"
+        >
+
+            <h2>
+                Record Contribution
+            </h2>
+
+            <p id="selectedMember">
+                Member:
+            </p>
+
+            <label for="contributionAmount">
+                Contribution Amount
+            </label>
+
+            <input
+                type="number"
+                id="contributionAmount"
+                min="1"
+                step="0.01"
+                placeholder="Enter amount"
+            >
+
+            <label for="paymentDate">
+                Payment Date
+            </label>
+
+            <input
+                type="date"
+                id="paymentDate"
+            >
+
+            <button
+                type="button"
+                id="saveContribution"
+            >
+                Save Contribution
+            </button>
+
+        </section>
+
+
+        <!-- =================================================
+             CONTRIBUTION HISTORY
+        ================================================== -->
+
+        <section
+            id="contributionHistory"
+            style="display: none;"
+        >
+
+            <h2>
+                Contribution History
+            </h2>
+
+            <div id="contributionHistoryList">
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             PAYOUT FORM
+        ================================================== -->
+
+        <section
+            id="payoutForm"
+            class="card"
+            style="display: none;"
+        >
+
+            <h2>
+                Record Payout
+            </h2>
+
+            <p id="selectedPayoutMember">
+                Member:
+            </p>
+
+            <label for="payoutAmount">
+                Payout Amount
+            </label>
+
+            <input
+                type="number"
+                id="payoutAmount"
+                min="1"
+                step="0.01"
+                placeholder="Enter payout amount"
+            >
+
+            <label for="payoutDate">
+                Payout Date
+            </label>
+
+            <input
+                type="date"
+                id="payoutDate"
+            >
+
+            <button
+                type="button"
+                id="savePayout"
+            >
+                Save Payout
+            </button>
+
+        </section>
+
+
+        <!-- =================================================
+             PAYOUT HISTORY
+        ================================================== -->
+
+        <section
+            id="payoutHistory"
+            style="display: none;"
+        >
+
+            <h2>
+                Payout History
+            </h2>
+
+            <div id="payoutHistoryList">
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             PAYOUT SCHEDULE
+        ================================================== -->
+
+        <section>
+
+            <div class="section-header">
+
+                <h2>
+                    Payout Schedule
+                </h2>
+
+                <button
+                    type="button"
+                    id="addScheduleButton"
+                >
+                    + Add Schedule
+                </button>
+
+            </div>
+
+
+            <!-- SCHEDULE FORM -->
+
+            <div
+                id="scheduleForm"
+                class="card"
+                style="display: none;"
+            >
+
+                <h3>
+                    Create Payout Schedule
+                </h3>
+
+                <label for="scheduleMember">
+                    Member
+                </label>
+
+                <select id="scheduleMember">
+
+                    <option value="">
+                        Select Member
+                    </option>
+
+                </select>
+
+
+                <label for="scheduleAmount">
+                    Amount
+                </label>
+
+                <input
+                    type="number"
+                    id="scheduleAmount"
+                    min="1"
+                    step="0.01"
+                    placeholder="Enter amount"
+                >
+
+
+                <label for="scheduleDate">
+                    Payout Date
+                </label>
+
+                <input
+                    type="date"
+                    id="scheduleDate"
+                >
+
+
+                <button
+                    type="button"
+                    id="saveSchedule"
+                >
+                    Save Schedule
+                </button>
+
+            </div>
+
+
+            <!-- SCHEDULE LIST -->
+
+            <div id="payoutScheduleList">
+
+                <p>
+                    Loading payout schedule...
+                </p>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             LOAN SECTION
+             Created and controlled by group-details.js
+        ================================================== -->
+
+        <section
+            id="loanSection"
+            style="display: none;"
+        >
+        </section>
+
+    </main>
+
+
+    <!-- =====================================================
+         JAVASCRIPT
+    ====================================================== -->
+
+    <script src="js/group-details.js"></script>
+
+</body>
+
+</html>

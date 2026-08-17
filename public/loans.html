@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Ajo Savings Tracker - Loans</title>
+
+    <link
+        rel="stylesheet"
+        href="css/dashboard.css"
+    >
+
+</head>
+
+<body>
+
+    <!-- ======================================================
+         HEADER
+    ======================================================= -->
+
+    <header class="dashboard-header">
+
+        <div class="dashboard-brand">
+
+            <div class="brand-icon">
+                A
+            </div>
+
+            <div>
+
+                <h1>
+                    Ajo Savings Tracker
+                </h1>
+
+                <p>
+                    Loan Management
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="header-actions">
+
+            <button
+                id="refreshLoans"
+                class="refresh-button"
+                type="button"
+            >
+                Refresh
+            </button>
+
+        </div>
+
+    </header>
+
+
+    <!-- ======================================================
+         NAVIGATION
+    ======================================================= -->
+
+    <nav class="dashboard-nav">
+
+        <div class="nav-container">
+
+            <a
+                href="dashboard.html"
+                class="nav-link"
+            >
+                Dashboard
+            </a>
+
+            <a
+                href="groups.html"
+                class="nav-link"
+            >
+                Groups
+            </a>
+
+            <a
+                href="members.html"
+                class="nav-link"
+            >
+                Members
+            </a>
+
+            <a
+                href="contributions.html"
+                class="nav-link"
+            >
+                Contributions
+            </a>
+
+            <a
+                href="payouts.html"
+                class="nav-link"
+            >
+                Payouts
+            </a>
+
+            <a
+                href="loans.html"
+                class="nav-link active"
+            >
+                Loans
+            </a>
+
+            <a
+                href="reports.html"
+                class="nav-link"
+            >
+                Reports
+            </a>
+
+        </div>
+
+    </nav>
+
+
+    <!-- ======================================================
+         MAIN
+    ======================================================= -->
+
+    <main class="dashboard-container">
+
+
+        <!-- ==================================================
+             PAGE HEADING
+        =================================================== -->
+
+        <section>
+
+            <div class="section-heading">
+
+                <div>
+
+                    <h2>
+                        Loans
+                    </h2>
+
+                    <p class="section-subtitle">
+                        Monitor loans, repayments and interest.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+                </section>
+
+
+        <!-- ==================================================
+             CREATE LOAN
+        =================================================== -->
+
+        <section class="create-loan-section">
+
+            <div class="section-heading">
+
+                <div>
+
+                    <h2>
+                        Create New Loan
+                    </h2>
+
+                    <p class="section-subtitle">
+                        Create a loan and automatically generate its repayment schedule.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <form id="loanForm" class="loan-form">
+
+                <div class="form-group">
+
+                    <label for="loanGroup">
+                        Cooperative Group
+                    </label>
+
+                    <select
+                        id="loanGroup"
+                        required
+                    >
+
+                        <option value="">
+                            Select group
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="loanMember">
+                        Member
+                    </label>
+
+                    <select
+                        id="loanMember"
+                        required
+                        disabled
+                    >
+
+                        <option value="">
+                            Select member
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="loanAmount">
+                        Loan Amount
+                    </label>
+
+                    <input
+                        type="number"
+                        id="loanAmount"
+                        min="1"
+                        step="0.01"
+                        placeholder="Enter loan amount"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="loanDate">
+                        Loan Date
+                    </label>
+
+                    <input
+                        type="date"
+                        id="loanDate"
+                        required
+                    >
+
+                </div>
+
+
+                <div
+                    id="loanCalculationPreview"
+                    class="loan-calculation-preview"
+                >
+
+                    <h3>
+                        Loan Calculation
+                    </h3>
+
+                    <div class="loan-preview-grid">
+
+                        <div>
+
+                            <span>
+                                Interest Rate
+                            </span>
+
+                            <strong id="previewInterestRate">
+                                0%
+                            </strong>
+
+                        </div>
+
+
+                        <div>
+
+                            <span>
+                                Interest Amount
+                            </span>
+
+                            <strong id="previewInterestAmount">
+                                ₦0
+                            </strong>
+
+                        </div>
+
+
+                        <div>
+
+                            <span>
+                                Total Repayment
+                            </span>
+
+                            <strong id="previewTotalRepayment">
+                                ₦0
+                            </strong>
+
+                        </div>
+
+
+                        <div>
+
+                            <span>
+                                Repayment Period
+                            </span>
+
+                            <strong id="previewRepaymentMonths">
+                                0 months
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="loan-form-actions">
+
+                    <button
+                        type="submit"
+                        class="primary-button"
+                    >
+                        Create Loan
+                    </button>
+
+
+                    <button
+                        type="button"
+                        id="cancelLoan"
+                        class="secondary-button"
+                    >
+                        Cancel
+                    </button>
+
+                </div>
+
+            </form>
+
+        </section>
+
+
+        <!-- ==================================================
+             LOAN OVERVIEW
+        =================================================== -->
+
+        <section class="loan-overview-section">
+
+        <!-- ==================================================
+             LOAN SUMMARY
+        =================================================== -->
+
+        <section class="loan-overview-section">
+
+            <div class="loan-summary-grid">
+
+
+                <!-- TOTAL LOANS -->
+
+                <div class="loan-summary-card">
+
+                    <h3>
+                        Total Loans
+                    </h3>
+
+                    <p id="totalLoans">
+                        0
+                    </p>
+
+                </div>
+
+
+                <!-- ACTIVE LOANS -->
+
+                <div class="loan-summary-card">
+
+                    <h3>
+                        Active Loans
+                    </h3>
+
+                    <p id="activeLoans">
+                        0
+                    </p>
+
+                </div>
+
+
+                <!-- TOTAL LOANED -->
+
+                <div class="loan-summary-card">
+
+                    <h3>
+                        Total Loaned
+                    </h3>
+
+                    <p id="totalLoaned">
+                        ₦0
+                    </p>
+
+                </div>
+
+
+                <!-- OUTSTANDING -->
+
+                <div class="loan-summary-card">
+
+                    <h3>
+                        Outstanding Loans
+                    </h3>
+
+                    <p id="outstandingLoans">
+                        ₦0
+                    </p>
+
+                </div>
+
+
+                <!-- REPAYMENTS -->
+
+                <div class="loan-summary-card">
+
+                    <h3>
+                        Loan Repayments
+                    </h3>
+
+                    <p id="totalLoanRepayments">
+                        ₦0
+                    </p>
+
+                </div>
+
+
+                <!-- INTEREST -->
+
+                <div class="loan-summary-card">
+
+                    <h3>
+                        Interest Earned
+                    </h3>
+
+                    <p id="totalInterest">
+                        ₦0
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ==================================================
+             LOAN ACTIVITY
+        =================================================== -->
+
+        <section class="loan-activity-section">
+
+            <div class="section-heading">
+
+                <div>
+
+                    <h2>
+                        Loan Activity
+                    </h2>
+
+                    <p class="section-subtitle">
+                        Recent loans and repayment progress.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div
+                id="loanActivity"
+                class="loan-activity-list"
+            >
+
+                <p>
+                    Loading loan activity...
+                </p>
+
+            </div>
+
+        </section>
+
+
+    </main>
+
+
+    <!-- ======================================================
+         JAVASCRIPT
+    ======================================================= -->
+
+    <script src="js/loans.js"></script>
+
+</body>
+
+</html>

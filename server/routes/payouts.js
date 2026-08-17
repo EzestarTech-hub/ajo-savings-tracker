@@ -12,7 +12,11 @@ console.log("Payouts routes loaded");
 
 router.post("/:id/payouts", (req, res) => {
 
-    console.log("PAYOUT POST REQUEST:", req.params, req.body);
+    console.log(
+        "PAYOUT POST REQUEST:",
+        req.params,
+        req.body
+    );
 
     const memberId = req.params.id;
 
@@ -21,14 +25,26 @@ router.post("/:id/payouts", (req, res) => {
         payout_date
     } = req.body;
 
-    // Validate input
-    if (!amount || Number(amount) <= 0 || !payout_date) {
+
+    // ==================================================
+    // VALIDATE INPUT
+    // ==================================================
+
+    if (
+        !amount ||
+        Number(amount) <= 0 ||
+        !payout_date
+    ) {
 
         return res.status(400).json({
-            error: "Enter a valid payout amount and payout date."
+
+            error:
+                "Enter a valid payout amount and payout date."
+
         });
 
     }
+
 
     // ==================================================
     // CHECK MEMBER BALANCE
@@ -56,9 +72,13 @@ router.post("/:id/payouts", (req, res) => {
             ) AS totalPayouts
     `;
 
+
     db.get(
         balanceSql,
-        [memberId, memberId],
+        [
+            memberId,
+            memberId
+        ],
         (err, row) => {
 
             if (err) {
@@ -69,25 +89,39 @@ router.post("/:id/payouts", (req, res) => {
 
             }
 
+
             const totalContributions =
-                Number(row.totalContributions || 0);
+                Number(
+                    row.totalContributions || 0
+                );
+
 
             const totalPayouts =
-                Number(row.totalPayouts || 0);
+                Number(
+                    row.totalPayouts || 0
+                );
+
 
             const balance =
-                totalContributions - totalPayouts;
+                totalContributions -
+                totalPayouts;
+
 
             const payoutAmount =
                 Number(amount);
 
-            console.log("PAYOUT BALANCE:", {
-                memberId,
-                totalContributions,
-                totalPayouts,
-                balance,
-                payoutAmount
-            });
+
+            console.log(
+                "PAYOUT BALANCE:",
+                {
+                    memberId,
+                    totalContributions,
+                    totalPayouts,
+                    balance,
+                    payoutAmount
+                }
+            );
+
 
             // ==================================================
             // PREVENT INVALID PAYOUT
@@ -107,6 +141,7 @@ router.post("/:id/payouts", (req, res) => {
 
             }
 
+
             // ==================================================
             // SAVE PAYOUT
             // ==================================================
@@ -120,6 +155,7 @@ router.post("/:id/payouts", (req, res) => {
                 )
                 VALUES (?, ?, ?)
             `;
+
 
             db.run(
                 sql,
@@ -137,6 +173,7 @@ router.post("/:id/payouts", (req, res) => {
                         });
 
                     }
+
 
                     res.status(201).json({
 
@@ -156,13 +193,16 @@ router.post("/:id/payouts", (req, res) => {
 
 });
 
+
 // ======================================================
 // GET MEMBER PAYOUTS
 // ======================================================
 
 router.get("/:id/payouts", (req, res) => {
 
-    const memberId = req.params.id;
+    const memberId =
+        req.params.id;
+
 
     const sql = `
         SELECT *
@@ -170,6 +210,7 @@ router.get("/:id/payouts", (req, res) => {
         WHERE member_id = ?
         ORDER BY payout_date DESC, id DESC
     `;
+
 
     db.all(
         sql,
@@ -184,6 +225,7 @@ router.get("/:id/payouts", (req, res) => {
 
             }
 
+
             res.json(rows);
 
         }
@@ -191,20 +233,27 @@ router.get("/:id/payouts", (req, res) => {
 
 });
 
+
 // ======================================================
 // UPDATE PAYOUT
 // ======================================================
 
 router.put("/payouts/:id", (req, res) => {
 
-    const payoutId = req.params.id;
+    const payoutId =
+        req.params.id;
+
 
     const {
         amount,
         payout_date
     } = req.body;
 
-    // Validate input
+
+    // ==================================================
+    // VALIDATE INPUT
+    // ==================================================
+
     if (
         !amount ||
         Number(amount) <= 0 ||
@@ -212,13 +261,18 @@ router.put("/payouts/:id", (req, res) => {
     ) {
 
         return res.status(400).json({
+
             error:
                 "Enter a valid payout amount and payout date."
+
         });
 
     }
 
-    const newAmount = Number(amount);
+
+    const newAmount =
+        Number(amount);
+
 
     // ==================================================
     // FIND EXISTING PAYOUT
@@ -233,6 +287,7 @@ router.put("/payouts/:id", (req, res) => {
         WHERE id = ?
     `;
 
+
     db.get(
         findSql,
         [payoutId],
@@ -246,16 +301,21 @@ router.put("/payouts/:id", (req, res) => {
 
             }
 
+
             if (!payout) {
 
                 return res.status(404).json({
-                    error: "Payout not found."
+
+                    error:
+                        "Payout not found."
+
                 });
 
             }
 
+
             // ==================================================
-            // CALCULATE BALANCE
+            // CALCULATE CURRENT MEMBER BALANCE
             // ==================================================
 
             const balanceSql = `
@@ -280,6 +340,7 @@ router.put("/payouts/:id", (req, res) => {
                     ) AS totalPayouts
             `;
 
+
             db.get(
                 balanceSql,
                 [
@@ -296,41 +357,68 @@ router.put("/payouts/:id", (req, res) => {
 
                     }
 
+
                     const totalContributions =
                         Number(
                             row.totalContributions || 0
                         );
+
 
                     const totalPayouts =
                         Number(
                             row.totalPayouts || 0
                         );
 
-                    // Add the old payout back
-                    const availableBalance =
+
+                    const oldAmount =
+                        Number(
+                            payout.amount || 0
+                        );
+
+
+                    // ==================================================
+                    // RESTORE OLD PAYOUT
+                    // ==================================================
+
+                    const balanceAvailableForEdit =
                         totalContributions -
                         (
                             totalPayouts -
-                            Number(payout.amount)
+                            oldAmount
                         );
+
+
+                    console.log(
+                        "PAYOUT EDIT BALANCE:",
+                        {
+                            payoutId,
+                            oldAmount,
+                            newAmount,
+                            totalContributions,
+                            totalPayouts,
+                            balanceAvailableForEdit
+                        }
+                    );
+
 
                     // ==================================================
                     // PREVENT INVALID UPDATE
                     // ==================================================
 
                     if (
-                        availableBalance <= 0 ||
-                        newAmount > availableBalance
+                        newAmount >
+                        balanceAvailableForEdit
                     ) {
 
                         return res.status(400).json({
 
                             error:
-                                `Insufficient balance. Available balance: ₦${availableBalance.toLocaleString()}`
+                                `Insufficient balance. Available balance for this edit: ₦${balanceAvailableForEdit.toLocaleString()}`
 
                         });
 
                     }
+
 
                     // ==================================================
                     // UPDATE PAYOUT
@@ -343,6 +431,7 @@ router.put("/payouts/:id", (req, res) => {
                             payout_date = ?
                         WHERE id = ?
                     `;
+
 
                     db.run(
                         updateSql,
@@ -361,14 +450,18 @@ router.put("/payouts/:id", (req, res) => {
 
                             }
 
+
                             if (this.changes === 0) {
 
                                 return res.status(404).json({
+
                                     error:
                                         "Payout not found."
+
                                 });
 
                             }
+
 
                             res.json({
 
@@ -388,18 +481,22 @@ router.put("/payouts/:id", (req, res) => {
 
 });
 
+
 // ======================================================
 // DELETE PAYOUT
 // ======================================================
 
 router.delete("/payouts/:id", (req, res) => {
 
-    const payoutId = req.params.id;
+    const payoutId =
+        req.params.id;
+
 
     const sql = `
         DELETE FROM payouts
         WHERE id = ?
     `;
+
 
     db.run(
         sql,
@@ -414,14 +511,18 @@ router.delete("/payouts/:id", (req, res) => {
 
             }
 
+
             if (this.changes === 0) {
 
                 return res.status(404).json({
+
                     error:
                         "Payout not found."
+
                 });
 
             }
+
 
             res.json({
 
@@ -434,6 +535,7 @@ router.delete("/payouts/:id", (req, res) => {
     );
 
 });
+
 
 // ======================================================
 // EXPORT ROUTER

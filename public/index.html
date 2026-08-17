@@ -1,8 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Ajo Savings Tracker</title>
 
     <link rel="stylesheet" href="css/style.css">
@@ -10,48 +12,195 @@
 
 <body>
 
-<h1>Ajo Savings Tracker</h1>
+    <h1>Ajo Savings Tracker</h1>
 
-<form id="groupForm">
 
-  <input
-    type="text"
-    id="name"
-    placeholder="Group Name"
-    required
-  >
+    <!-- ==================================================
+         CREATE GROUP FORM
+         ================================================== -->
 
-  <input
-    type="number"
-    id="amount"
-    placeholder="Contribution Amount"
-    required
-  >
+    <form id="groupForm">
 
-  <input
-    type="text"
-    id="frequency"
-    placeholder="monthly"
-    required
-  >
 
-  <input
-    type="date"
-    id="startDate"
-    required
-  >
+        <!-- ==================================================
+             GROUP NAME
+             ================================================== -->
 
-  <button type="submit">
-    Create Group
-  </button>
+        <input
+            type="text"
+            id="name"
+            placeholder="Group Name"
+            required
+        >
 
-</form>
 
-<p id="message"></p>
-<h2>Groups</h2>
+        <!-- ==================================================
+             GROUP TYPE
+             ================================================== -->
 
-<ul id="groupList"></ul>
+        <select
+            id="groupType"
+            required
+        >
 
-<script src="js/app.js"></script>
+            <option value="">
+                Select Ajo Type
+            </option>
+
+            <option value="individual">
+                Individual Ajo
+            </option>
+
+            <option value="cooperative">
+                Cooperative Ajo
+            </option>
+
+        </select>
+
+
+        <!-- ==================================================
+             CONTRIBUTION AMOUNT
+             ================================================== -->
+
+        <input
+            type="number"
+            id="amount"
+            placeholder="Contribution Amount"
+            min="1"
+            required
+        >
+
+
+        <!-- ==================================================
+             FREQUENCY
+             ================================================== -->
+
+        <select
+            id="frequency"
+            required
+        >
+
+            <option value="">
+                Select Frequency
+            </option>
+
+            <option value="daily">
+                Daily
+            </option>
+
+            <option value="weekly">
+                Weekly
+            </option>
+
+            <option value="monthly">
+                Monthly
+            </option>
+
+        </select>
+
+
+        <!-- ==================================================
+             COORDINATOR FEE
+             ================================================== -->
+
+        <input
+            type="number"
+            id="coordinatorFee"
+            placeholder="Coordinator Fee"
+            min="0"
+            value="0"
+            required
+        >
+
+
+        <!-- ==================================================
+             COOPERATIVE LOAN SETTINGS
+             ================================================== -->
+
+        <div
+            id="loanSettings"
+            style="display: none;"
+        >
+
+            <h3>
+                Cooperative Loan Settings
+            </h3>
+
+
+            <!-- Loan Interest -->
+
+            <input
+                type="number"
+                id="loanInterestRate"
+                placeholder="Loan Interest Rate (%)"
+                min="0"
+                step="0.01"
+                value="0"
+            >
+
+
+            <!-- Loan Repayment Period -->
+
+            <input
+                type="number"
+                id="loanRepaymentMonths"
+                placeholder="Loan Repayment Period (Months)"
+                min="1"
+                step="1"
+                value="0"
+            >
+
+        </div>
+
+
+        <!-- ==================================================
+             START DATE
+             ================================================== -->
+
+        <input
+            type="date"
+            id="startDate"
+            required
+        >
+
+
+        <!-- ==================================================
+             CREATE GROUP
+             ================================================== -->
+
+        <button
+            type="submit"
+        >
+            Create Group
+        </button>
+
+    </form>
+
+
+    <!-- ==================================================
+         MESSAGE
+         ================================================== -->
+
+    <p id="message"></p>
+
+
+    <!-- ==================================================
+         GROUP LIST
+         ================================================== -->
+
+    <h2>
+        Groups
+    </h2>
+
+    <ul id="groupList"></ul>
+
+
+    <!-- ==================================================
+         JAVASCRIPT
+         ================================================== -->
+
+    <script src="js/app.js"></script>
+
 </body>
+
 </html>

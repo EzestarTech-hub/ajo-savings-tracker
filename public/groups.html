@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Ajo Savings Tracker - Groups</title>
+
+    <link
+        rel="stylesheet"
+        href="css/groups.css"
+    >
+
+</head>
+
+<body>
+
+    <header class="page-header">
+
+        <div>
+            <h1>Ajo Savings Tracker</h1>
+
+            <p>
+                Groups
+            </p>
+        </div>
+
+        <button
+            type="button"
+            id="refreshGroups"
+        >
+            Refresh
+        </button>
+
+    </header>
+
+
+    <nav>
+
+        <a href="dashboard.html">
+            Dashboard
+        </a>
+
+        <a href="reports.html">
+            Reports
+        </a>
+
+    </nav>
+
+
+    <main>
+
+        <section>
+
+            <div class="section-header">
+
+                <div>
+                    <h2>
+                        Savings Groups
+                    </h2>
+
+                    <p>
+                        Manage and view all Ajo savings groups.
+                    </p>
+                </div>
+
+                <button
+                    type="button"
+                    id="showCreateGroup"
+                >
+                    + Create Group
+                </button>
+
+            </div>
+
+
+            <!-- CREATE GROUP FORM -->
+
+            <div
+                id="createGroupForm"
+                class="create-form"
+                style="display: none;"
+            >
+
+                <h3>
+                    Create New Group
+                </h3>
+
+
+                <label for="groupName">
+                    Group Name
+                </label>
+
+                <input
+                    type="text"
+                    id="groupName"
+                    placeholder="Enter group name"
+                >
+
+
+                <label for="groupType">
+                    Group Type
+                </label>
+
+                <select id="groupType">
+
+                    <option value="">
+                        Select Group Type
+                    </option>
+
+                    <option value="individual">
+                        Individual Ajo
+                    </option>
+
+                    <option value="cooperative">
+                        Cooperative Ajo
+                    </option>
+
+                </select>
+
+
+                <label for="contributionAmount">
+                    Contribution Amount
+                </label>
+
+                <input
+                    type="number"
+                    id="contributionAmount"
+                    min="1"
+                    placeholder="Enter contribution amount"
+                >
+
+
+                <label for="frequency">
+                    Contribution Frequency
+                </label>
+
+                <select id="frequency">
+
+                    <option value="">
+                        Select Frequency
+                    </option>
+
+                    <option value="daily">
+                        Daily
+                    </option>
+
+                    <option value="weekly">
+                        Weekly
+                    </option>
+
+                    <option value="monthly">
+                        Monthly
+                    </option>
+
+                </select>
+
+
+                <label for="startDate">
+                    Start Date
+                </label>
+
+                <input
+                    type="date"
+                    id="startDate"
+                >
+
+
+                <div class="form-actions">
+
+                    <button
+                        type="button"
+                        id="saveGroup"
+                    >
+                        Save Group
+                    </button>
+
+                    <button
+                        type="button"
+                        id="cancelCreateGroup"
+                    >
+                        Cancel
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <!-- GROUP CARDS -->
+
+            <div
+                id="groupsList"
+                class="groups-grid"
+            >
+
+                <p>
+                    Loading groups...
+                </p>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <script src="js/groups.js"></script>
+
+</body>
+
+</html>

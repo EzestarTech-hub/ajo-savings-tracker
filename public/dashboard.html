@@ -25,11 +25,23 @@
          HEADER
     ======================================================= -->
 
-    <header class="dashboard-header">
+    <!-- ======================================================
+     DASHBOARD HEADER
+======================================================= -->
+
+<header class="dashboard-header">
+
+    <div class="dashboard-brand">
+
+        <div class="brand-icon">
+            A
+        </div>
 
         <div>
 
-            <h1>Ajo Savings Tracker</h1>
+            <h1>
+                Ajo Savings Tracker
+            </h1>
 
             <p>
                 Financial Overview
@@ -37,14 +49,86 @@
 
         </div>
 
+    </div>
+
+
+    <div class="header-actions">
+
         <button
             id="refreshDashboard"
             type="button"
+            class="refresh-button"
         >
             Refresh
         </button>
 
-    </header>
+    </div>
+
+</header>
+
+
+<!-- ======================================================
+     DASHBOARD NAVIGATION
+====================================================== -->
+
+<nav class="dashboard-nav">
+
+    <div class="nav-container">
+
+        <a
+            href="dashboard.html"
+            class="nav-link active"
+        >
+            Dashboard
+        </a>
+
+        <a href="reports.html">Reports</a>
+
+        <a
+            href="groups.html"
+            class="nav-link"
+        >
+            Groups
+        </a>
+
+        <a
+            href="members.html"
+            class="nav-link"
+        >
+            Members
+        </a>
+
+        <a
+            href="contributions.html"
+            class="nav-link"
+        >
+            Contributions
+        </a>
+
+        <a
+            href="payouts.html"
+            class="nav-link"
+        >
+            Payouts
+        </a>
+
+        <a
+            href="loans.html"
+            class="nav-link"
+        >
+            Loans
+        </a>
+
+        <a
+            href="reports.html"
+            class="nav-link"
+        >
+            Reports
+        </a>
+
+    </div>
+
+</nav>
 
 
     <!-- ======================================================
@@ -71,6 +155,18 @@
                 </p>
 
             </div>
+
+            <!-- REMAINING BALANCE -->
+
+<div class="summary-card">
+
+    <h3>Remaining Balance</h3>
+
+    <p id="remainingBalance">
+        ₦0
+    </p>
+
+</div>
 
 
             <!-- TOTAL MEMBERS -->
@@ -139,6 +235,158 @@
 
         </section>
 
+        <!-- ==================================================
+     LOAN OVERVIEW
+=================================================== -->
+
+<section class="loan-overview-section">
+
+    <div class="section-heading">
+
+        <div>
+            <h2>
+                Loan Overview
+            </h2>
+
+            <p class="section-subtitle">
+                Monitor loans, repayments and interest.
+            </p>
+        </div>
+
+    </div>
+
+
+    <div class="loan-summary-grid">
+
+        <!-- TOTAL LOANS -->
+
+        <div class="loan-summary-card">
+
+            <h3>
+                Total Loans
+            </h3>
+
+            <p id="totalLoans">
+                0
+            </p>
+
+        </div>
+
+
+        <!-- ACTIVE LOANS -->
+
+        <div class="loan-summary-card">
+
+            <h3>
+                Active Loans
+            </h3>
+
+            <p id="activeLoans">
+                0
+            </p>
+
+        </div>
+
+
+        <!-- TOTAL LOANED -->
+
+        <div class="loan-summary-card">
+
+            <h3>
+                Total Loaned
+            </h3>
+
+            <p id="totalLoaned">
+                ₦0
+            </p>
+
+        </div>
+
+
+        <!-- OUTSTANDING -->
+
+        <div class="loan-summary-card">
+
+            <h3>
+                Outstanding Loans
+            </h3>
+
+            <p id="outstandingLoans">
+                ₦0
+            </p>
+
+        </div>
+
+
+        <!-- REPAYMENTS -->
+
+        <div class="loan-summary-card">
+
+            <h3>
+                Loan Repayments
+            </h3>
+
+            <p id="totalLoanRepayments">
+                ₦0
+            </p>
+
+        </div>
+
+
+        <!-- INTEREST -->
+
+        <div class="loan-summary-card">
+
+            <h3>
+                Interest Earned
+            </h3>
+
+            <p id="totalInterest">
+                ₦0
+            </p>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- ==================================================
+     LOAN ACTIVITY
+=================================================== -->
+
+<section class="loan-activity-section">
+
+    <div class="section-heading">
+
+        <div>
+
+            <h2>
+                Loan Activity
+            </h2>
+
+            <p class="section-subtitle">
+                Recent loans and repayment progress.
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <div
+        id="loanActivity"
+        class="loan-activity-list"
+    >
+
+        <p>
+            Loading loan activity...
+        </p>
+
+    </div>
+
+</section>
 
         <!-- ==================================================
              AJO HEALTH

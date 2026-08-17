@@ -1,8 +1,11 @@
 const express = require("express");
 
+console.log("🔥 GROUPS.JS FILE IS LOADING");
+
 const router = express.Router();
 
 const db = require("../db");
+
 
 // ======================================================
 // CREATE GROUP
@@ -10,56 +13,315 @@ const db = require("../db");
 
 router.post("/", (req, res) => {
 
+    console.log(
+        "CREATE GROUP REQUEST:",
+        req.body
+    );
+
+
     const {
         name,
+        group_type,
         contribution_amount,
         frequency,
+        coordinator_fee,
+        loan_interest_rate,
+        loan_repayment_months,
         start_date
     } = req.body;
 
+
+    // ==================================================
+    // VALIDATE GROUP NAME
+    // ==================================================
+
     if (
         !name ||
-        !contribution_amount ||
-        Number(contribution_amount) <= 0 ||
-        !frequency ||
-        !start_date
+        !name.trim()
     ) {
 
         return res.status(400).json({
             error:
-                "Group name, contribution amount, frequency and start date are required."
+                "Group name is required."
         });
 
     }
 
+
+    // ==================================================
+    // VALIDATE GROUP TYPE
+    // ==================================================
+
+    const normalizedGroupType =
+        String(
+            group_type || ""
+        )
+        .trim()
+        .toLowerCase();
+
+
+    if (
+        ![
+            "individual",
+            "cooperative"
+        ].includes(
+            normalizedGroupType
+        )
+    ) {
+
+        return res.status(400).json({
+            error:
+                "Please select Individual Ajo or Cooperative / Association."
+        });
+
+    }
+
+
+    // ==================================================
+    // VALIDATE CONTRIBUTION AMOUNT
+    // ==================================================
+
+    const contributionAmount =
+        Number(
+            contribution_amount
+        );
+
+
+    if (
+        !Number.isFinite(
+            contributionAmount
+        ) ||
+        contributionAmount <= 0
+    ) {
+
+        return res.status(400).json({
+            error:
+                "Contribution amount must be greater than zero."
+        });
+
+    }
+
+
+    // ==================================================
+    // VALIDATE FREQUENCY
+    // ==================================================
+
+    if (
+        !frequency ||
+        !frequency.trim()
+    ) {
+
+        return res.status(400).json({
+            error:
+                "Contribution frequency is required."
+        });
+
+    }
+
+
+    // ==================================================
+    // VALIDATE START DATE
+    // ==================================================
+
+    if (!start_date) {
+
+        return res.status(400).json({
+            error:
+                "Start date is required."
+        });
+
+    }
+
+
+    // ==================================================
+    // COORDINATOR FEE
+    // ==================================================
+
+    const coordinatorFee =
+        Number(
+            coordinator_fee || 0
+        );
+
+
+    if (
+        !Number.isFinite(
+            coordinatorFee
+        ) ||
+        coordinatorFee < 0
+    ) {
+
+        return res.status(400).json({
+            error:
+                "Coordinator fee cannot be negative."
+        });
+
+    }
+
+
+    // ==================================================
+    // LOAN INTEREST RATE
+    // ==================================================
+
+    const loanInterestRate =
+        Number(
+            loan_interest_rate || 0
+        );
+
+
+    if (
+        !Number.isFinite(
+            loanInterestRate
+        ) ||
+        loanInterestRate < 0
+    ) {
+
+        return res.status(400).json({
+            error:
+                "Loan interest rate cannot be negative."
+        });
+
+    }
+
+
+    // ==================================================
+    // LOAN REPAYMENT PERIOD
+    // ==================================================
+
+    const loanRepaymentMonths =
+        Number(
+            loan_repayment_months || 0
+        );
+
+
+    if (
+        !Number.isInteger(
+            loanRepaymentMonths
+        ) ||
+        loanRepaymentMonths < 0
+    ) {
+
+        return res.status(400).json({
+            error:
+                "Loan repayment period must be a valid number of months."
+        });
+
+    }
+
+
+    // ==================================================
+    // INDIVIDUAL AJO LOAN SETTINGS
+    // ==================================================
+    //
+    // Individual Ajo does not use cooperative loans.
+    // Therefore, if the group is Individual Ajo,
+    // automatically keep loan settings at zero.
+    //
+    // Coordinator fee is still allowed for both
+    // Individual Ajo and Cooperative / Association.
+    // ==================================================
+
+    let finalLoanInterestRate =
+        loanInterestRate;
+
+    let finalLoanRepaymentMonths =
+        loanRepaymentMonths;
+
+
+    if (
+        normalizedGroupType ===
+        "individual"
+    ) {
+
+        finalLoanInterestRate = 0;
+
+        finalLoanRepaymentMonths = 0;
+
+    }
+
+
+    // ==================================================
+    // INSERT GROUP
+    // ==================================================
+
     const sql = `
+
         INSERT INTO groups
         (
             name,
             contribution_amount,
             frequency,
-            start_date
+            start_date,
+            group_type,
+            coordinator_fee,
+            loan_interest_rate,
+            loan_repayment_months
         )
-        VALUES (?, ?, ?, ?)
+
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+
     `;
+
 
     db.run(
         sql,
         [
             name.trim(),
-            Number(contribution_amount),
-            frequency,
-            start_date
+
+            contributionAmount,
+
+            frequency.trim(),
+
+            start_date,
+
+            normalizedGroupType,
+
+            coordinatorFee,
+
+            finalLoanInterestRate,
+
+            finalLoanRepaymentMonths
         ],
+
         function (err) {
 
             if (err) {
 
+                console.error(
+                    "Create group error:",
+                    err
+                );
+
                 return res.status(500).json({
-                    error: err.message
+                    error:
+                        err.message
                 });
 
             }
+
+
+            console.log(
+                "GROUP CREATED:",
+                {
+                    groupId:
+                        this.lastID,
+
+                    name:
+                        name.trim(),
+
+                    group_type:
+                        normalizedGroupType,
+
+                    coordinator_fee:
+                        coordinatorFee,
+
+                    loan_interest_rate:
+                        finalLoanInterestRate,
+
+                    loan_repayment_months:
+                        finalLoanRepaymentMonths
+                }
+            );
+
 
             res.status(201).json({
 
@@ -84,23 +346,40 @@ router.post("/", (req, res) => {
 router.get("/", (req, res) => {
 
     const sql = `
-        SELECT *
+
+        SELECT
+            id,
+            name,
+            contribution_amount,
+            frequency,
+            start_date,
+            group_type,
+            coordinator_fee,
+            loan_interest_rate,
+            loan_repayment_months
+
         FROM groups
+
         ORDER BY id DESC
+
     `;
+
 
     db.all(
         sql,
         [],
+
         (err, rows) => {
 
             if (err) {
 
                 return res.status(500).json({
-                    error: err.message
+                    error:
+                        err.message
                 });
 
             }
+
 
             res.json(rows);
 
@@ -114,913 +393,1088 @@ router.get("/", (req, res) => {
 // GET GROUP SUMMARY
 // ======================================================
 
-router.get("/:id/summary", (req, res) => {
+router.get(
+    "/:id/summary",
+    (req, res) => {
 
-    const groupId =
-        req.params.id;
+        const groupId =
+            req.params.id;
 
-    const sql = `
 
-        SELECT
+        const sql = `
 
-            groups.name,
+            SELECT
 
-            COUNT(
-                DISTINCT members.id
-            ) AS numberOfMembers,
+                groups.id,
 
-            COALESCE(
-                SUM(contributions.amount),
-                0
-            ) AS totalContribution
+                groups.name,
 
-        FROM groups
+                groups.group_type,
 
-        LEFT JOIN members
-            ON groups.id = members.group_id
+                groups.coordinator_fee,
 
-        LEFT JOIN contributions
-            ON members.id = contributions.member_id
+                groups.loan_interest_rate,
 
-        WHERE groups.id = ?
+                groups.loan_repayment_months,
 
-        GROUP BY groups.id
+                COUNT(
+                    DISTINCT members.id
+                ) AS numberOfMembers,
 
-    `;
-
-    db.get(
-        sql,
-        [groupId],
-        (err, row) => {
-
-            if (err) {
-
-                console.error(
-                    "Group summary error:",
-                    err
-                );
-
-                return res.status(500).json({
-                    error: err.message
-                });
-
-            }
-
-            if (!row) {
-
-                return res.status(404).json({
-                    error:
-                        "Group not found."
-                });
-
-            }
-
-            res.json({
-
-                groupName:
-                    row.name,
-
-                numberOfMembers:
-                    Number(
-                        row.numberOfMembers || 0
+                COALESCE(
+                    SUM(
+                        contributions.amount
                     ),
+                    0
+                ) AS totalContribution
 
-                totalContribution:
-                    Number(
-                        row.totalContribution || 0
-                    )
+            FROM groups
 
-            });
+            LEFT JOIN members
+                ON groups.id =
+                   members.group_id
 
-        }
-    );
+            LEFT JOIN contributions
+                ON members.id =
+                   contributions.member_id
 
-});
+            WHERE groups.id = ?
+
+            GROUP BY groups.id
+
+        `;
+
+
+        db.get(
+            sql,
+            [groupId],
+
+            (err, row) => {
+
+                if (err) {
+
+                    console.error(
+                        "Group summary error:",
+                        err
+                    );
+
+                    return res.status(500).json({
+                        error:
+                            err.message
+                    });
+
+                }
+
+
+                if (!row) {
+
+                    return res.status(404).json({
+                        error:
+                            "Group not found."
+                    });
+
+                }
+
+
+                res.json({
+
+                    groupName:
+                        row.name,
+
+                    groupType:
+                        row.group_type,
+
+                    coordinatorFee:
+                        Number(
+                            row.coordinator_fee ||
+                            0
+                        ),
+
+                    loanInterestRate:
+                        Number(
+                            row.loan_interest_rate ||
+                            0
+                        ),
+
+                    loanRepaymentMonths:
+                        Number(
+                            row.loan_repayment_months ||
+                            0
+                        ),
+
+                    numberOfMembers:
+                        Number(
+                            row.numberOfMembers ||
+                            0
+                        ),
+
+                    totalContribution:
+                        Number(
+                            row.totalContribution ||
+                            0
+                        )
+
+                });
+
+            }
+        );
+
+    }
+);
 
 
 // ======================================================
 // AJO CYCLE / CONTRIBUTION OVERVIEW
 // ======================================================
 
-router.get("/:id/cycle-overview", (req, res) => {
+router.get(
+    "/:id/cycle-overview",
+    (req, res) => {
 
-    const groupId =
-        req.params.id;
-
-
-    // ==================================================
-    // GET GROUP INFORMATION
-    // ==================================================
-
-    const groupSql = `
-
-        SELECT
-            id,
-            name,
-            contribution_amount,
-            frequency,
-            start_date
-
-        FROM groups
-
-        WHERE id = ?
-
-    `;
-
-    db.get(
-        groupSql,
-        [groupId],
-        (err, group) => {
-
-            if (err) {
-
-                console.error(
-                    "Get group information error:",
-                    err
-                );
-
-                return res.status(500).json({
-                    error: err.message
-                });
-
-            }
-
-            if (!group) {
-
-                return res.status(404).json({
-                    error:
-                        "Group not found."
-                });
-
-            }
+        const groupId =
+            req.params.id;
 
 
-            // ==================================================
-            // GET MEMBERS AND THEIR CONTRIBUTIONS
-            // ==================================================
+        // ==================================================
+        // GET GROUP INFORMATION
+        // ==================================================
 
-            const membersSql = `
+        const groupSql = `
 
-                SELECT
+            SELECT
 
-                    members.id AS member_id,
+                id,
 
-                    members.name AS member_name,
+                name,
 
-                    COALESCE(
-                        SUM(contributions.amount),
-                        0
-                    ) AS actual_contribution
+                contribution_amount,
 
-                FROM members
+                frequency,
 
-                LEFT JOIN contributions
-                    ON members.id =
-                       contributions.member_id
+                start_date,
 
-                WHERE members.group_id = ?
+                group_type,
 
-                GROUP BY members.id
+                coordinator_fee,
 
-                ORDER BY members.id ASC
+                loan_interest_rate,
 
-            `;
+                loan_repayment_months
 
-            db.all(
-                membersSql,
-                [groupId],
-                (memberErr, members) => {
+            FROM groups
 
-                    if (memberErr) {
+            WHERE id = ?
 
-                        console.error(
-                            "Cycle members error:",
-                            memberErr
-                        );
-
-                        return res.status(500).json({
-                            error:
-                                memberErr.message
-                        });
-
-                    }
+        `;
 
 
-                    // ==================================================
-                    // CALCULATE ELAPSED CYCLES
-                    // ==================================================
+        db.get(
+            groupSql,
+            [groupId],
 
-                    const startDate =
-                        new Date(
-                            group.start_date +
-                            "T00:00:00"
-                        );
+            (err, group) => {
 
-                    const today =
-                        new Date();
+                if (err) {
 
-                    let elapsedCycles =
-                        1;
+                    console.error(
+                        "Get group information error:",
+                        err
+                    );
+
+                    return res.status(500).json({
+                        error:
+                            err.message
+                    });
+
+                }
 
 
-                    if (
-                        !isNaN(
-                            startDate.getTime()
-                        )
-                    ) {
+                if (!group) {
 
-                        const difference =
-                            today.getTime() -
-                            startDate.getTime();
+                    return res.status(404).json({
+                        error:
+                            "Group not found."
+                    });
 
-                        const daysElapsed =
-                            Math.max(
-                                0,
-                                Math.floor(
-                                    difference /
-                                    (
-                                        1000 *
-                                        60 *
-                                        60 *
-                                        24
-                                    )
-                                )
+                }
+
+
+                // ==================================================
+                // GET MEMBERS AND CONTRIBUTIONS
+                // ==================================================
+
+                const membersSql = `
+
+                    SELECT
+
+                        members.id AS member_id,
+
+                        members.name AS member_name,
+
+                        COALESCE(
+                            SUM(
+                                contributions.amount
+                            ),
+                            0
+                        ) AS actual_contribution
+
+                    FROM members
+
+                    LEFT JOIN contributions
+
+                        ON members.id =
+                           contributions.member_id
+
+                    WHERE members.group_id = ?
+
+                    GROUP BY members.id
+
+                    ORDER BY members.id ASC
+
+                `;
+
+
+                db.all(
+                    membersSql,
+                    [groupId],
+
+                    (
+                        memberErr,
+                        members
+                    ) => {
+
+                        if (memberErr) {
+
+                            console.error(
+                                "Cycle members error:",
+                                memberErr
                             );
 
-                        const frequency =
-                            String(
-                                group.frequency
-                            ).toLowerCase();
+                            return res.status(500).json({
+                                error:
+                                    memberErr.message
+                            });
+
+                        }
+
+
+                        // ==================================================
+                        // CALCULATE ELAPSED CYCLES
+                        // ==================================================
+
+                        const startDate =
+                            new Date(
+                                group.start_date +
+                                "T00:00:00"
+                            );
+
+
+                        const today =
+                            new Date();
+
+
+                        let elapsedCycles =
+                            1;
 
 
                         if (
-                            frequency ===
-                            "daily"
+                            !isNaN(
+                                startDate.getTime()
+                            )
                         ) {
 
-                            elapsedCycles =
-                                daysElapsed + 1;
+                            const difference =
+                                today.getTime() -
+                                startDate.getTime();
 
-                        }
 
-                        else if (
-                            frequency ===
-                            "weekly"
-                        ) {
+                            const daysElapsed =
+                                Math.max(
+                                    0,
 
-                            elapsedCycles =
-                                Math.floor(
-                                    daysElapsed / 7
-                                ) + 1;
+                                    Math.floor(
+                                        difference /
+                                        (
+                                            1000 *
+                                            60 *
+                                            60 *
+                                            24
+                                        )
+                                    )
+                                );
 
-                        }
 
-                        else if (
-                            frequency ===
-                            "monthly"
-                        ) {
+                            const frequency =
+                                String(
+                                    group.frequency
+                                )
+                                .toLowerCase();
 
-                            elapsedCycles =
-                                (
+
+                            if (
+                                frequency ===
+                                "daily"
+                            ) {
+
+                                elapsedCycles =
+                                    daysElapsed + 1;
+
+                            }
+
+                            else if (
+                                frequency ===
+                                "weekly"
+                            ) {
+
+                                elapsedCycles =
+                                    Math.floor(
+                                        daysElapsed /
+                                        7
+                                    ) + 1;
+
+                            }
+
+                            else if (
+                                frequency ===
+                                "monthly"
+                            ) {
+
+                                elapsedCycles =
                                     (
-                                        today.getFullYear() -
-                                        startDate.getFullYear()
-                                    ) * 12
-                                )
-                                +
+                                        (
+                                            today.getFullYear() -
+                                            startDate.getFullYear()
+                                        ) * 12
+                                    )
+                                    +
+                                    (
+                                        today.getMonth() -
+                                        startDate.getMonth()
+                                    )
+                                    + 1;
+
+                            }
+
+                            else {
+
+                                elapsedCycles =
+                                    1;
+
+                            }
+
+                        }
+
+
+                        // ==================================================
+                        // CONTRIBUTION AMOUNTS
+                        // ==================================================
+
+                        const contributionAmount =
+                            Number(
+                                group.contribution_amount
+                            );
+
+
+                        const memberCount =
+                            members.length;
+
+
+                        // ==================================================
+                        // EXPECTED CONTRIBUTION
+                        // ==================================================
+
+                        const expectedPerMember =
+                            contributionAmount *
+                            elapsedCycles;
+
+
+                        const totalExpected =
+                            expectedPerMember *
+                            memberCount;
+
+
+                        // ==================================================
+                        // MEMBER CONTRIBUTION STATUS
+                        // ==================================================
+
+                        const memberOverview =
+                            members.map(
+                                member => {
+
+                                    const actual =
+                                        Number(
+                                            member.actual_contribution ||
+                                            0
+                                        );
+
+
+                                    const expected =
+                                        expectedPerMember;
+
+
+                                    const outstanding =
+                                        Math.max(
+                                            0,
+
+                                            expected -
+                                            actual
+                                        );
+
+
+                                    const difference =
+                                        actual -
+                                        expected;
+
+
+                                    let status;
+
+
+                                    if (
+                                        actual >=
+                                        expected
+                                    ) {
+
+                                        status =
+                                            "Paid";
+
+                                    }
+
+                                    else if (
+                                        actual > 0
+                                    ) {
+
+                                        status =
+                                            "Partially Paid";
+
+                                    }
+
+                                    else {
+
+                                        status =
+                                            "Not Paid";
+
+                                    }
+
+
+                                    return {
+
+                                        member_id:
+                                            member.member_id,
+
+                                        member_name:
+                                            member.member_name,
+
+                                        expected:
+                                            expected,
+
+                                        actual:
+                                            actual,
+
+                                        difference:
+                                            difference,
+
+                                        outstanding:
+                                            outstanding,
+
+                                        status:
+                                            status
+
+                                    };
+
+                                }
+                            );
+
+
+                        // ==================================================
+                        // HISTORICAL TOTAL CONTRIBUTION
+                        // ==================================================
+
+                        const totalContributionToDate =
+                            memberOverview.reduce(
                                 (
-                                    today.getMonth() -
-                                    startDate.getMonth()
+                                    total,
+                                    member
+                                ) => {
+
+                                    return (
+                                        total +
+                                        member.actual
+                                    );
+
+                                },
+                                0
+                            );
+
+
+                        // ==================================================
+                        // CURRENT CYCLE CONTRIBUTION
+                        // ==================================================
+
+                        const currentCycleActual =
+                            memberOverview.reduce(
+                                (
+                                    total,
+                                    member
+                                ) => {
+
+                                    return (
+                                        total +
+                                        Math.min(
+                                            member.actual,
+                                            member.expected
+                                        )
+                                    );
+
+                                },
+                                0
+                            );
+
+
+                        // ==================================================
+                        // TOTAL OUTSTANDING
+                        // ==================================================
+
+                        const outstanding =
+                            memberOverview.reduce(
+                                (
+                                    total,
+                                    member
+                                ) => {
+
+                                    return (
+                                        total +
+                                        member.outstanding
+                                    );
+
+                                },
+                                0
+                            );
+
+
+                        // ==================================================
+                        // PAID MEMBERS
+                        // ==================================================
+
+                        const paidMembers =
+                            memberOverview.filter(
+                                member =>
+                                    member.actual >=
+                                    member.expected
+                            ).length;
+
+
+                        // ==================================================
+                        // CURRENT CYCLE PROGRESS
+                        // ==================================================
+
+                        let progress =
+                            0;
+
+
+                        if (
+                            totalExpected > 0
+                        ) {
+
+                            progress =
+                                (
+                                    currentCycleActual /
+                                    totalExpected
+                                ) * 100;
+
+                        }
+
+
+                        progress =
+                            Math.min(
+                                100,
+
+                                Math.max(
+                                    0,
+                                    progress
                                 )
-                                + 1;
+                            );
+
+
+                        // ==================================================
+                        // OVERALL CYCLE STATUS
+                        // ==================================================
+
+                        let cycleStatus;
+
+
+                        if (
+                            memberCount === 0
+                        ) {
+
+                            cycleStatus =
+                                "No Members";
+
+                        }
+
+                        else if (
+                            paidMembers ===
+                            memberCount
+                        ) {
+
+                            cycleStatus =
+                                "On Track";
+
+                        }
+
+                        else if (
+                            paidMembers > 0
+                        ) {
+
+                            cycleStatus =
+                                "Needs Attention";
 
                         }
 
                         else {
 
-                            elapsedCycles =
-                                1;
+                            cycleStatus =
+                                "No Contributions";
 
                         }
 
-                    }
 
+                        // ==================================================
+                        // RESPONSE
+                        // ==================================================
 
-                    // ==================================================
-                    // CONTRIBUTION AMOUNTS
-                    // ==================================================
+                        res.json({
 
-                    const contributionAmount =
-                        Number(
-                            group.contribution_amount
-                        );
+                            group: {
 
-                    const memberCount =
-                        members.length;
+                                id:
+                                    group.id,
 
+                                name:
+                                    group.name,
 
-                    // ==================================================
-                    // EXPECTED CONTRIBUTION
-                    // ==================================================
+                                groupType:
+                                    group.group_type,
 
-                    const expectedPerMember =
-                        contributionAmount *
-                        elapsedCycles;
+                                contributionAmount:
+                                    contributionAmount,
 
-                    const totalExpected =
-                        expectedPerMember *
-                        memberCount;
+                                frequency:
+                                    group.frequency,
 
+                                startDate:
+                                    group.start_date,
 
-                    // ==================================================
-                    // MEMBER CONTRIBUTION STATUS
-                    // ==================================================
-
-                    const memberOverview =
-                        members.map(
-                            member => {
-
-                                const actual =
+                                coordinatorFee:
                                     Number(
-                                        member.actual_contribution ||
+                                        group.coordinator_fee ||
                                         0
-                                    );
+                                    ),
 
-                                const expected =
-                                    expectedPerMember;
+                                loanInterestRate:
+                                    Number(
+                                        group.loan_interest_rate ||
+                                        0
+                                    ),
 
+                                loanRepaymentMonths:
+                                    Number(
+                                        group.loan_repayment_months ||
+                                        0
+                                    ),
 
-                                const outstanding =
-                                    Math.max(
-                                        0,
-                                        expected -
-                                        actual
-                                    );
-
-
-                                const difference =
-                                    actual -
-                                    expected;
-
-
-                                let status;
-
-
-                                if (
-                                    actual >=
-                                    expected
-                                ) {
-
-                                    status =
-                                        "Paid";
-
-                                }
-
-                                else if (
-                                    actual > 0
-                                ) {
-
-                                    status =
-                                        "Partially Paid";
-
-                                }
-
-                                else {
-
-                                    status =
-                                        "Not Paid";
-
-                                }
-
-
-                                return {
-
-                                    member_id:
-                                        member.member_id,
-
-                                    member_name:
-                                        member.member_name,
-
-                                    expected:
-                                        expected,
-
-                                    actual:
-                                        actual,
-
-                                    difference:
-                                        difference,
-
-                                    outstanding:
-                                        outstanding,
-
-                                    status:
-                                        status
-
-                                };
-
-                            }
-                        );
-
-
-                    // ==================================================
-                    // HISTORICAL TOTAL CONTRIBUTION
-                    // ==================================================
-
-                    const totalContributionToDate =
-                        memberOverview.reduce(
-                            (
-                                total,
-                                member
-                            ) => {
-
-                                return (
-                                    total +
-                                    member.actual
-                                );
+                                memberCount:
+                                    memberCount
 
                             },
-                            0
-                        );
 
 
-                    // ==================================================
-                    // CURRENT CYCLE CONTRIBUTION
-                    // ==================================================
+                            cycle: {
 
-                    const currentCycleActual =
-                        memberOverview.reduce(
-                            (
-                                total,
-                                member
-                            ) => {
+                                elapsedCycles:
+                                    elapsedCycles,
 
-                                return (
-                                    total +
-                                    Math.min(
-                                        member.actual,
-                                        member.expected
-                                    )
-                                );
+                                expectedPerMember:
+                                    expectedPerMember,
 
-                            },
-                            0
-                        );
+                                totalExpected:
+                                    totalExpected,
 
+                                totalActual:
+                                    currentCycleActual,
 
-                    // ==================================================
-                    // TOTAL OUTSTANDING
-                    // ==================================================
+                                totalContributionToDate:
+                                    totalContributionToDate,
 
-                    const outstanding =
-                        memberOverview.reduce(
-                            (
-                                total,
-                                member
-                            ) => {
+                                outstanding:
+                                    outstanding,
 
-                                return (
-                                    total +
-                                    member.outstanding
-                                );
+                                paidMembers:
+                                    paidMembers,
+
+                                unpaidMembers:
+                                    memberCount -
+                                    paidMembers,
+
+                                progress:
+                                    Number(
+                                        progress.toFixed(2)
+                                    ),
+
+                                status:
+                                    cycleStatus
 
                             },
-                            0
-                        );
 
 
-                    // ==================================================
-                    // MEMBER PAYMENT PROGRESS
-                    // ==================================================
+                            members:
+                                memberOverview
 
-                    const paidMembers =
-                        memberOverview.filter(
-                            member =>
-                                member.actual >=
-                                member.expected
-                        ).length;
-
-
-                    // ==================================================
-                    // CURRENT CYCLE PROGRESS
-                    // ==================================================
-
-                    let progress =
-                        0;
-
-
-                    if (
-                        totalExpected > 0
-                    ) {
-
-                        progress =
-                            (
-                                currentCycleActual /
-                                totalExpected
-                            ) * 100;
+                        });
 
                     }
+                );
 
+            }
+        );
 
-                    progress =
-                        Math.min(
-                            100,
-                            Math.max(
-                                0,
-                                progress
-                            )
-                        );
-
-
-                    // ==================================================
-                    // OVERALL CYCLE STATUS
-                    // ==================================================
-
-                    let cycleStatus;
-
-
-                    if (
-                        memberCount === 0
-                    ) {
-
-                        cycleStatus =
-                            "No Members";
-
-                    }
-
-                    else if (
-                        paidMembers ===
-                        memberCount
-                    ) {
-
-                        cycleStatus =
-                            "On Track";
-
-                    }
-
-                    else if (
-                        paidMembers > 0
-                    ) {
-
-                        cycleStatus =
-                            "Needs Attention";
-
-                    }
-
-                    else {
-
-                        cycleStatus =
-                            "No Contributions";
-
-                    }
-
-
-                    // ==================================================
-                    // RESPONSE
-                    // ==================================================
-
-                    res.json({
-
-                        group: {
-
-                            id:
-                                group.id,
-
-                            name:
-                                group.name,
-
-                            contributionAmount:
-                                contributionAmount,
-
-                            frequency:
-                                group.frequency,
-
-                            startDate:
-                                group.start_date,
-
-                            memberCount:
-                                memberCount
-
-                        },
-
-
-                        cycle: {
-
-                            elapsedCycles:
-                                elapsedCycles,
-
-                            expectedPerMember:
-                                expectedPerMember,
-
-                            totalExpected:
-                                totalExpected,
-
-                            totalActual:
-                                currentCycleActual,
-
-                            totalContributionToDate:
-                                totalContributionToDate,
-
-                            outstanding:
-                                outstanding,
-
-                            paidMembers:
-                                paidMembers,
-
-                            unpaidMembers:
-                                memberCount -
-                                paidMembers,
-
-                            progress:
-                                Number(
-                                    progress.toFixed(2)
-                                ),
-
-                            status:
-                                cycleStatus
-
-                        },
-
-
-                        members:
-                            memberOverview
-
-                    });
-
-                }
-            );
-
-        }
-    );
-
-});
+    }
+);
 
 
 // ======================================================
 // ADD MEMBER
 // ======================================================
 
-router.post("/:id/members", (req, res) => {
+router.post(
+    "/:id/members",
+    (req, res) => {
 
-    console.log(
-        "POST /:id/members route reached"
-    );
-
-    const groupId =
-        req.params.id;
-
-    const { name } =
-        req.body;
+        console.log(
+            "POST /:id/members route reached"
+        );
 
 
-    if (
-        !name ||
-        !name.trim()
-    ) {
-
-        return res.status(400).json({
-            error:
-                "Member name is required."
-        });
-
-    }
+        const groupId =
+            req.params.id;
 
 
-    const sql = `
-
-        INSERT INTO members
-        (
-            group_id,
-            name
-        )
-        VALUES (?, ?)
-
-    `;
+        const { name } =
+            req.body;
 
 
-    db.run(
-        sql,
-        [
-            groupId,
-            name.trim()
-        ],
-        function (err) {
+        if (
+            !name ||
+            !name.trim()
+        ) {
 
-            if (err) {
-
-                return res.status(500).json({
-                    error: err.message
-                });
-
-            }
-
-
-            res.status(201).json({
-
-                message:
-                    "Member added successfully!",
-
-                memberId:
-                    this.lastID
-
+            return res.status(400).json({
+                error:
+                    "Member name is required."
             });
 
         }
-    );
 
-});
+
+        // ==================================================
+        // CHECK GROUP EXISTS
+        // ==================================================
+
+        const checkGroupSql = `
+
+            SELECT id
+
+            FROM groups
+
+            WHERE id = ?
+
+        `;
+
+
+        db.get(
+            checkGroupSql,
+            [groupId],
+
+            (err, group) => {
+
+                if (err) {
+
+                    return res.status(500).json({
+                        error:
+                            err.message
+                    });
+
+                }
+
+
+                if (!group) {
+
+                    return res.status(404).json({
+                        error:
+                            "Group not found."
+                    });
+
+                }
+
+
+                // ==================================================
+                // ADD MEMBER
+                // ==================================================
+
+                const sql = `
+
+                    INSERT INTO members
+                    (
+                        group_id,
+                        name
+                    )
+
+                    VALUES (?, ?)
+
+                `;
+
+
+                db.run(
+                    sql,
+                    [
+                        groupId,
+                        name.trim()
+                    ],
+
+                    function (err) {
+
+                        if (err) {
+
+                            return res.status(500).json({
+                                error:
+                                    err.message
+                            });
+
+                        }
+
+
+                        res.status(201).json({
+
+                            message:
+                                "Member added successfully!",
+
+                            memberId:
+                                this.lastID
+
+                        });
+
+                    }
+                );
+
+            }
+        );
+
+    }
+);
 
 
 // ======================================================
 // GET ALL MEMBERS IN A GROUP
 // ======================================================
 
-router.get("/:id/members", (req, res) => {
+router.get(
+    "/:id/members",
+    (req, res) => {
 
-    const groupId =
-        req.params.id;
-
-
-    const sql = `
-
-        SELECT *
-
-        FROM members
-
-        WHERE group_id = ?
-
-        ORDER BY id ASC
-
-    `;
+        const groupId =
+            req.params.id;
 
 
-    db.all(
-        sql,
-        [groupId],
-        (err, rows) => {
+        const sql = `
 
-            if (err) {
+            SELECT *
 
-                return res.status(500).json({
-                    error: err.message
-                });
+            FROM members
+
+            WHERE group_id = ?
+
+            ORDER BY id ASC
+
+        `;
+
+
+        db.all(
+            sql,
+            [groupId],
+
+            (err, rows) => {
+
+                if (err) {
+
+                    return res.status(500).json({
+                        error:
+                            err.message
+                    });
+
+                }
+
+
+                res.json(rows);
 
             }
+        );
 
-
-            res.json(rows);
-
-        }
-    );
-
-});
+    }
+);
 
 
 // ======================================================
 // DELETE EMPTY GROUP
 // ======================================================
 
-router.delete("/:id", (req, res) => {
+router.delete(
+    "/:id",
+    (req, res) => {
 
-    const groupId =
-        req.params.id;
-
-
-    // ==================================================
-    // CHECK WHETHER GROUP EXISTS
-    // ==================================================
-
-    const checkGroupSql = `
-
-        SELECT
-            id,
-            name
-
-        FROM groups
-
-        WHERE id = ?
-
-    `;
+        const groupId =
+            req.params.id;
 
 
-    db.get(
-        checkGroupSql,
-        [groupId],
-        (err, group) => {
+        // ==================================================
+        // CHECK WHETHER GROUP EXISTS
+        // ==================================================
 
-            if (err) {
+        const checkGroupSql = `
 
-                return res.status(500).json({
-                    error:
-                        err.message
-                });
+            SELECT
+                id,
+                name
 
-            }
+            FROM groups
 
+            WHERE id = ?
 
-            if (!group) {
-
-                return res.status(404).json({
-                    error:
-                        "Group not found."
-                });
-
-            }
+        `;
 
 
-            // ==================================================
-            // CHECK MEMBERS
-            // ==================================================
+        db.get(
+            checkGroupSql,
+            [groupId],
 
-            const checkMembersSql = `
+            (err, group) => {
 
-                SELECT
-                    COUNT(*) AS memberCount
+                if (err) {
 
-                FROM members
+                    return res.status(500).json({
+                        error:
+                            err.message
+                    });
 
-                WHERE group_id = ?
-
-            `;
-
-
-            db.get(
-                checkMembersSql,
-                [groupId],
-                (err, result) => {
-
-                    if (err) {
-
-                        return res.status(500).json({
-                            error:
-                                err.message
-                        });
-
-                    }
+                }
 
 
-                    // ==================================================
-                    // DO NOT DELETE GROUP WITH MEMBERS
-                    // ==================================================
+                if (!group) {
 
-                    if (
-                        result.memberCount > 0
-                    ) {
+                    return res.status(404).json({
+                        error:
+                            "Group not found."
+                    });
 
-                        return res.status(400).json({
-
-                            error:
-                                "This group cannot be deleted because it has members."
-
-                        });
-
-                    }
+                }
 
 
-                    // ==================================================
-                    // DELETE EMPTY GROUP
-                    // ==================================================
+                // ==================================================
+                // CHECK MEMBERS
+                // ==================================================
 
-                    const deleteSql = `
+                const checkMembersSql = `
 
-                        DELETE FROM groups
+                    SELECT
 
-                        WHERE id = ?
+                        COUNT(*) AS memberCount
 
-                    `;
+                    FROM members
 
+                    WHERE group_id = ?
 
-                    db.run(
-                        deleteSql,
-                        [groupId],
-                        function (err) {
-
-                            if (err) {
-
-                                return res.status(500).json({
-                                    error:
-                                        err.message
-                                });
-
-                            }
+                `;
 
 
-                            res.json({
+                db.get(
+                    checkMembersSql,
+                    [groupId],
 
-                                message:
-                                    `Group "${group.name}" deleted successfully.`
+                    (err, result) => {
+
+                        if (err) {
+
+                            return res.status(500).json({
+                                error:
+                                    err.message
+                            });
+
+                        }
+
+
+                        // ==================================================
+                        // DO NOT DELETE GROUP WITH MEMBERS
+                        // ==================================================
+
+                        if (
+                            result.memberCount > 0
+                        ) {
+
+                            return res.status(400).json({
+
+                                error:
+                                    "This group cannot be deleted because it has members."
 
                             });
 
                         }
-                    );
 
-                }
-            );
 
-        }
-    );
+                        // ==================================================
+                        // DELETE EMPTY GROUP
+                        // ==================================================
 
-});
+                        const deleteSql = `
+
+                            DELETE FROM groups
+
+                            WHERE id = ?
+
+                        `;
+
+
+                        db.run(
+                            deleteSql,
+                            [groupId],
+
+                            function (err) {
+
+                                if (err) {
+
+                                    return res.status(500).json({
+                                        error:
+                                            err.message
+                                    });
+
+                                }
+
+
+                                res.json({
+
+                                    message:
+                                        `Group "${group.name}" deleted successfully.`
+
+                                });
+
+                            }
+                        );
+
+                    }
+                );
+
+            }
+        );
+
+    }
+);
 
 
 // ======================================================
