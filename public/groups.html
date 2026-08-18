@@ -83,114 +83,167 @@
             <!-- CREATE GROUP FORM -->
 
             <div
-                id="createGroupForm"
-                class="create-form"
-                style="display: none;"
-            >
+    id="createGroupForm"
+    class="create-form"
+    style="display: none;"
+>
 
-                <h3>
-                    Create New Group
-                </h3>
-
-
-                <label for="groupName">
-                    Group Name
-                </label>
-
-                <input
-                    type="text"
-                    id="groupName"
-                    placeholder="Enter group name"
-                >
+    <h3>
+        Create New Group
+    </h3>
 
 
-                <label for="groupType">
-                    Group Type
-                </label>
+    <label for="groupName">
+        Group Name
+    </label>
 
-                <select id="groupType">
-
-                    <option value="">
-                        Select Group Type
-                    </option>
-
-                    <option value="individual">
-                        Individual Ajo
-                    </option>
-
-                    <option value="cooperative">
-                        Cooperative Ajo
-                    </option>
-
-                </select>
+    <input
+        type="text"
+        id="groupName"
+        placeholder="Enter group name"
+    >
 
 
-                <label for="contributionAmount">
-                    Contribution Amount
-                </label>
+    <label for="groupType">
+        Group Type
+    </label>
 
-                <input
-                    type="number"
-                    id="contributionAmount"
-                    min="1"
-                    placeholder="Enter contribution amount"
-                >
+    <select id="groupType">
 
+        <option value="">
+            Select Group Type
+        </option>
 
-                <label for="frequency">
-                    Contribution Frequency
-                </label>
+        <option value="individual">
+            Individual Ajo
+        </option>
 
-                <select id="frequency">
+        <option value="cooperative">
+            Cooperative Ajo
+        </option>
 
-                    <option value="">
-                        Select Frequency
-                    </option>
-
-                    <option value="daily">
-                        Daily
-                    </option>
-
-                    <option value="weekly">
-                        Weekly
-                    </option>
-
-                    <option value="monthly">
-                        Monthly
-                    </option>
-
-                </select>
+    </select>
 
 
-                <label for="startDate">
-                    Start Date
-                </label>
+    <label for="contributionAmount">
+        Contribution Amount
+    </label>
 
-                <input
-                    type="date"
-                    id="startDate"
-                >
+    <input
+        type="number"
+        id="contributionAmount"
+        min="1"
+        placeholder="Enter contribution amount"
+    >
 
 
-                <div class="form-actions">
+    <label for="frequency">
+        Contribution Frequency
+    </label>
 
-                    <button
-                        type="button"
-                        id="saveGroup"
-                    >
-                        Save Group
-                    </button>
+    <select id="frequency">
 
-                    <button
-                        type="button"
-                        id="cancelCreateGroup"
-                    >
-                        Cancel
-                    </button>
+        <option value="">
+            Select Frequency
+        </option>
 
-                </div>
+        <option value="daily">
+            Daily
+        </option>
 
-            </div>
+        <option value="weekly">
+            Weekly
+        </option>
+
+        <option value="monthly">
+            Monthly
+        </option>
+
+    </select>
+
+
+    <label for="startDate">
+        Start Date
+    </label>
+
+    <input
+        type="date"
+        id="startDate"
+    >
+
+
+    <!-- COOPERATIVE SETTINGS -->
+
+    <div id="cooperativeSettings">
+
+        <h4>
+            Cooperative Settings
+        </h4>
+
+
+        <label for="coordinatorFee">
+            Coordinator Fee
+        </label>
+
+        <input
+            type="number"
+            id="coordinatorFee"
+            min="0"
+            step="0.01"
+            value="0"
+            placeholder="Enter coordinator fee"
+        >
+
+
+        <label for="loanInterestRate">
+            Loan Interest Rate (%)
+        </label>
+
+        <input
+            type="number"
+            id="loanInterestRate"
+            min="0"
+            step="0.01"
+            value="0"
+            placeholder="Enter loan interest rate"
+        >
+
+
+        <label for="loanRepaymentMonths">
+            Loan Repayment Period (Months)
+        </label>
+
+        <input
+            type="number"
+            id="loanRepaymentMonths"
+            min="0"
+            step="1"
+            value="0"
+            placeholder="Enter repayment months"
+        >
+
+    </div>
+
+
+    <div class="form-actions">
+
+        <button
+            type="button"
+            id="saveGroup"
+        >
+            Save Group
+        </button>
+
+        <button
+            type="button"
+            id="cancelCreateGroup"
+        >
+            Cancel
+        </button>
+
+    </div>
+
+</div>
 
 
             <!-- GROUP CARDS -->

@@ -876,7 +876,6 @@ router.get(
         );
     }
 );
-
 // ======================================================
 // RECORD LOAN REPAYMENT
 // ======================================================
@@ -884,15 +883,12 @@ router.get(
 router.post(
     "/:id/repay",
     (req, res) => {
+
         const loanId =
-            Number(
-                req.params.id
-            );
+            Number(req.params.id);
 
         const amount =
-            Number(
-                req.body.amount
-            );
+            Number(req.body.amount);
 
         const repaymentDate =
             req.body.repayment_date ||
@@ -901,9 +897,7 @@ router.post(
                 .split("T")[0];
 
         const requestedCycle =
-            Number(
-                req.body.cycle_number
-            );
+            Number(req.body.cycle_number);
 
         // ==================================================
         // VALIDATE LOAN ID
@@ -947,7 +941,9 @@ router.post(
             loanSql,
             [loanId],
             (loanErr, loan) => {
+
                 if (loanErr) {
+
                     console.error(
                         "Get loan for repayment error:",
                         loanErr
@@ -960,6 +956,7 @@ router.post(
                 }
 
                 if (!loan) {
+
                     return res.status(404).json({
                         error:
                             "Loan not found."
@@ -974,6 +971,7 @@ router.post(
                     loan.status !==
                     "Active"
                 ) {
+
                     return res.status(400).json({
                         error:
                             "This loan is already fully repaid."
@@ -994,6 +992,7 @@ router.post(
                     amount >
                     outstanding
                 ) {
+
                     return res.status(400).json({
                         error:
                             `Repayment exceeds outstanding balance of ₦${outstanding.toLocaleString()}.`
@@ -1020,7 +1019,9 @@ router.post(
                         cycleErr,
                         cycle
                     ) => {
+
                         if (cycleErr) {
+
                             console.error(
                                 "Get repayment cycle error:",
                                 cycleErr
@@ -1054,14 +1055,12 @@ router.post(
                             Number(
                                 loan.amount_repaid ||
                                 0
-                            ) +
-                            amount;
+                            ) + amount;
 
                         const newOutstanding =
                             Math.max(
                                 0,
-                                outstanding -
-                                amount
+                                outstanding - amount
                             );
 
                         const newStatus =
@@ -1091,7 +1090,9 @@ router.post(
                                 loanId
                             ],
                             (updateErr) => {
+
                                 if (updateErr) {
+
                                     console.error(
                                         "Update loan repayment error:",
                                         updateErr
@@ -1119,6 +1120,7 @@ router.post(
                                 `;
 
                                 db.run(
+                                    repaymentSql,
                                     [
                                         loanId,
                                         loan.member_id,
@@ -1129,9 +1131,9 @@ router.post(
                                     function (
                                         repaymentErr
                                     ) {
-                                        if (
-                                            repaymentErr
-                                        ) {
+
+                                        if (repaymentErr) {
+
                                             console.error(
                                                 "Record repayment error:",
                                                 repaymentErr
@@ -1147,65 +1149,179 @@ router.post(
                                             this.lastID;
 
                                         // ==================================================
-                                        // UPDATE REPAYMENT SCHEDULE
-                                        // ==================================================
+// UPDATE REPAYMENT SCHEDULE
+// ==================================================
 
-                                        if (cycle) {
-                                            const newCyclePaid =
-                                                Number(
-                                                    cycle.paid_amount ||
-                                                    0
-                                                ) +
-                                                amount;
+const scheduleSql = `
+    SELECT *
+    FROM loan_repayment_schedule
+    WHERE loan_id = ?
+    AND status != 'Paid'
+    ORDER BY cycle_number ASC
+`;
 
-                                            const cycleStatus =
-                                                newCyclePaid >=
-                                                Number(
-                                                    cycle.expected_amount
-                                                )
-                                                    ? "Paid"
-                                                    : "Partially Paid";
+db.all(
+    scheduleSql,
+    [loanId],
+    (scheduleErr, schedules) => {
 
-                                            const updateScheduleSql = `
-                                                UPDATE loan_repayment_schedule
-                                                SET
-                                                    paid_amount = ?,
-                                                    status = ?
-                                                WHERE id = ?
-                                            `;
+        if (scheduleErr) {
 
-                                            db.run(
-                                                updateScheduleSql,
-                                                [
-                                                    newCyclePaid,
-                                                    cycleStatus,
-                                                    cycle.id
-                                                ],
-                                                (
-                                                    scheduleUpdateErr
-                                                ) => {
-                                                    if (
-                                                        scheduleUpdateErr
-                                                    ) {
-                                                        console.error(
-                                                            "Schedule update error:",
-                                                            scheduleUpdateErr
-                                                        );
-                                                    }
+            console.error(
+                "Get repayment schedules error:",
+                scheduleErr
+            );
 
-                                                    sendRepaymentResponse();
-                                                }
-                                            );
-                                        } else {
-                                            sendRepaymentResponse();
-                                        }
+            return sendRepaymentResponse();
+
+        }
+
+        let remainingAmount =
+            amount;
+
+        let completed =
+            0;
+
+        function updateNextSchedule() {
+
+            if (
+                remainingAmount <= 0 ||
+                completed >= schedules.length
+            ) {
+
+                return sendRepaymentResponse();
+
+            }
+
+            const currentSchedule =
+                schedules[completed];
+
+            const expectedAmount =
+                Number(
+                    currentSchedule.expected_amount ||
+                    0
+                );
+
+            const alreadyPaid =
+                Number(
+                    currentSchedule.paid_amount ||
+                    0
+                );
+
+            const remainingForCycle =
+                Math.max(
+                    0,
+                    expectedAmount -
+                    alreadyPaid
+                );
+
+            const amountForCycle =
+                Math.min(
+                    remainingAmount,
+                    remainingForCycle
+                );
+
+            const newPaidAmount =
+                alreadyPaid +
+                amountForCycle;
+
+            const newStatus =
+                newPaidAmount >=
+                expectedAmount
+                    ? "Paid"
+                    : "Partially Paid";
+
+            const updateScheduleSql = `
+                UPDATE loan_repayment_schedule
+                SET
+                    paid_amount = ?,
+                    status = ?
+                WHERE id = ?
+            `;
+
+            db.run(
+    updateScheduleSql,
+    [
+        newPaidAmount,
+        newStatus,
+        currentSchedule.id
+    ],
+    (scheduleUpdateErr) => {
+
+        if (scheduleUpdateErr) {
+
+            console.error(
+                "Schedule update error:",
+                scheduleUpdateErr
+            );
+
+            return sendRepaymentResponse();
+
+        }
+
+        // ==================================================
+        // RECORD REPAYMENT ALLOCATION
+        // ==================================================
+
+        const allocationSql = `
+            INSERT INTO loan_repayment_allocations (
+                repayment_id,
+                loan_id,
+                cycle_number,
+                allocated_amount
+            )
+            VALUES (?, ?, ?, ?)
+        `;
+
+        db.run(
+            allocationSql,
+            [
+                repaymentId,
+                loanId,
+                currentSchedule.cycle_number,
+                amountForCycle
+            ],
+            (allocationErr) => {
+
+                if (allocationErr) {
+
+                    console.error(
+                        "Repayment allocation error:",
+                        allocationErr
+                    );
+
+                    return sendRepaymentResponse();
+
+                }
+
+                remainingAmount -=
+                    amountForCycle;
+
+                completed++;
+
+                updateNextSchedule();
+
+            }
+        );
+
+    }
+);
+
+        }
+
+        updateNextSchedule();
+
+    }
+);
 
                                         // ==================================================
                                         // SEND RESPONSE
                                         // ==================================================
 
                                         function sendRepaymentResponse() {
+
                                             return res.json({
+
                                                 message:
                                                     newStatus ===
                                                     "Paid"
@@ -1227,16 +1343,23 @@ router.post(
 
                                                 status:
                                                     newStatus
+
                                             });
+
                                         }
+
                                     }
                                 );
+
                             }
                         );
+
                     }
                 );
+
             }
         );
+
     }
 );
 

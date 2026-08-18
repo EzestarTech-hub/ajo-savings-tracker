@@ -398,6 +398,49 @@ db.serialize(() => {
 
     });
 
+ // ======================================================
+// LOAN REPAYMENT ALLOCATIONS
+// ======================================================
+
+db.run(`
+    CREATE TABLE IF NOT EXISTS loan_repayment_allocations (
+
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+        repayment_id INTEGER NOT NULL,
+
+        loan_id INTEGER NOT NULL,
+
+        cycle_number INTEGER NOT NULL,
+
+        allocated_amount REAL NOT NULL,
+
+        FOREIGN KEY (repayment_id)
+            REFERENCES loan_repayments(id),
+
+        FOREIGN KEY (loan_id)
+            REFERENCES loans(id)
+
+    )
+`, (err) => {
+
+    if (err) {
+
+        console.error(
+            "Loan repayment allocations table error:",
+            err.message
+        );
+
+    } else {
+
+        console.log(
+            "Loan repayment allocations table ready."
+        );
+
+    }
+
+});
+
 
     // ==================================================
     // DATABASE MIGRATIONS

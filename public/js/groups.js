@@ -47,6 +47,27 @@ const groupType =
         "groupType"
     );
 
+
+    const coordinatorFee =
+    document.getElementById(
+        "coordinatorFee"
+    );
+
+const loanInterestRate =
+    document.getElementById(
+        "loanInterestRate"
+    );
+
+const loanRepaymentMonths =
+    document.getElementById(
+        "loanRepaymentMonths"
+    );
+
+    const cooperativeSettings =
+    document.getElementById(
+        "cooperativeSettings"
+    );
+
 const contributionAmount =
     document.getElementById(
         "contributionAmount"
@@ -61,6 +82,34 @@ const startDate =
     document.getElementById(
         "startDate"
     );
+
+
+    groupType.addEventListener(
+    "change",
+    () => {
+
+        if (
+            groupType.value ===
+            "cooperative"
+        ) {
+
+            cooperativeSettings.style.display =
+                "block";
+
+        } else {
+
+            cooperativeSettings.style.display =
+                "none";
+
+        }
+
+    }
+);
+
+// Hide cooperative settings initially
+
+cooperativeSettings.style.display =
+    "none";
 
 
 // ======================================================
@@ -400,7 +449,22 @@ saveGroup.addEventListener(
                                     selectedFrequency,
 
                                 start_date:
-                                    date
+                                    date,
+
+                                    coordinator_fee:
+                                    Number(
+                                    coordinatorFee.value
+                        ),
+
+                                    loan_interest_rate:
+                                    Number(
+                                    loanInterestRate.value
+                                ),
+
+                                    loan_repayment_months:
+                                    Number(
+                                    loanRepaymentMonths.value
+                        )
 
                             })
                     }
@@ -447,6 +511,15 @@ saveGroup.addEventListener(
 
             startDate.value =
                 "";
+
+            coordinatorFee.value =
+                "0";
+
+            loanInterestRate.value =
+                "0";
+
+            loanRepaymentMonths.value =
+                "0";
 
 
             createGroupForm.style.display =

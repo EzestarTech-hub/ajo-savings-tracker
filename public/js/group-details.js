@@ -183,6 +183,53 @@ async function loadGroupSummary() {
                 data.totalContribution
             );
 
+            const cooperativeSettingsDisplay =
+    document.getElementById(
+        "cooperativeSettingsDisplay"
+    );
+
+const groupCoordinatorFee =
+    document.getElementById(
+        "groupCoordinatorFee"
+    );
+
+const groupLoanInterestRate =
+    document.getElementById(
+        "groupLoanInterestRate"
+    );
+
+const groupLoanRepaymentMonths =
+    document.getElementById(
+        "groupLoanRepaymentMonths"
+    );
+
+
+if (
+    data.groupType ===
+    "cooperative"
+) {
+
+    cooperativeSettingsDisplay.style.display =
+        "grid";
+
+    groupCoordinatorFee.textContent =
+        formatMoney(
+            data.coordinatorFee
+        );
+
+    groupLoanInterestRate.textContent =
+        `${data.loanInterestRate}%`;
+
+    groupLoanRepaymentMonths.textContent =
+        `${data.loanRepaymentMonths} months`;
+
+    } else {
+
+    cooperativeSettingsDisplay.style.display =
+        "none";
+
+}
+
     } catch (error) {
 
         console.error(
@@ -286,7 +333,7 @@ async function loadCycleOverview() {
 
                 <p>
                     ${formatMoney(
-                        cycle.totalExpected
+                        cycle.totalExpected || 0
                     )}
                 </p>
 
@@ -3352,23 +3399,11 @@ async function recordLoanRepayment(
 
 async function loadGroupPage() {
 
-    if (!groupId) {
+    await loadGroupSummary();
 
-        return;
+    await loadCycleOverview();
 
-    }
-
-    await Promise.all([
-
-        loadGroupSummary(),
-
-        loadCycleOverview(),
-
-        loadMembers(),
-
-        loadPayoutSchedule()
-
-    ]);
+    await loadMembers();
 
 }
 
