@@ -351,7 +351,7 @@ async function loadGroups() {
 
 
                 link.href =
-                    `group.html?id=${group.id}`;
+                    `group-details.html?id=${group.id}`;
 
 
                 link.textContent =
