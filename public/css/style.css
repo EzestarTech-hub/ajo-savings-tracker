@@ -1,4 +1,151 @@
-body {
+ /* ======================================================
+    MEMBERS PAGE
+    ====================================================== */
+
+.member-card {
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+
+.member-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+
+.member-card-header strong {
+    display: block;
+    font-size: 18px;
+    margin-bottom: 5px;
+}
+
+
+.member-card-header p {
+    margin: 0;
+    color: #666666;
+}
+
+
+.member-card-header > span {
+    font-size: 13px;
+    color: #777777;
+    white-space: nowrap;
+}
+
+
+.member-financial-summary {
+    display: grid;
+    grid-template-columns:
+        repeat(5, minmax(0, 1fr));
+    gap: 12px;
+}
+
+
+.member-financial-summary > div {
+    background: #f7f9fb;
+    border-radius: 8px;
+    padding: 14px;
+}
+
+
+.member-financial-summary strong {
+    display: block;
+    font-size: 17px;
+    margin-bottom: 5px;
+}
+
+
+.member-financial-summary span {
+    display: block;
+    font-size: 12px;
+    color: #666666;
+}
+
+
+.member-balance {
+    border-left: 4px solid #607d8b;
+}
+
+
+.member-balance.positive {
+    border-left-color: #2e7d32;
+}
+
+
+.member-balance.negative {
+    border-left-color: #c62828;
+}
+
+
+.member-balance.zero {
+    border-left-color: #607d8b;
+}
+
+
+.member-balance.positive strong {
+    color: #2e7d32;
+}
+
+
+.member-balance.negative strong {
+    color: #c62828;
+}
+
+
+.member-balance.zero strong {
+    color: #607d8b;
+}
+
+
+/* ======================================================
+   MEMBERS RESPONSIVE DESIGN
+   ====================================================== */
+
+@media (max-width: 1000px) {
+
+    .member-financial-summary {
+        grid-template-columns:
+            repeat(3, minmax(0, 1fr));
+    }
+
+}
+
+
+@media (max-width: 700px) {
+
+    .member-card-header {
+        flex-direction: column;
+    }
+
+
+    .member-card-header > span {
+        white-space: normal;
+    }
+
+
+    .member-financial-summary {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+
+}
+
+
+@media (max-width: 450px) {
+
+    .member-financial-summary {
+        grid-template-columns: 1fr;
+    }
+
+}body {
     font-family: Arial, sans-serif;
     background-color: #f4f6f9;
     margin: 40px;
@@ -217,4 +364,27 @@ li button {
         flex-direction: column;
     }
 
+}
+
+
+/* ======================================================
+   MEMBERS PAGE WIDTH FIX
+   ====================================================== */
+
+#membersList {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+
+#membersList .member-card {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+
+#membersList .member-financial-summary {
+    width: 100%;
+    box-sizing: border-box;
 }
