@@ -6,6 +6,120 @@ const router = express.Router();
 
 const db = require("../db");
 
+// ======================================================
+// CALCULATE CONTRIBUTION CYCLE
+// ======================================================
+
+function getContributionCycle(
+    startDateString,
+    paymentDateString,
+    frequency
+) {
+
+    const startDate =
+        new Date(
+            startDateString + "T00:00:00"
+        );
+
+    const paymentDate =
+        new Date(
+            paymentDateString + "T00:00:00"
+        );
+
+    if (
+        isNaN(startDate.getTime()) ||
+        isNaN(paymentDate.getTime())
+    ) {
+
+        return 1;
+
+    }
+
+    const normalizedFrequency =
+        String(
+            frequency
+        ).toLowerCase();
+
+    if (
+        paymentDate <
+        startDate
+    ) {
+
+        return 1;
+
+    }
+
+    if (
+        normalizedFrequency ===
+        "daily"
+    ) {
+
+        const difference =
+            paymentDate.getTime() -
+            startDate.getTime();
+
+        return (
+            Math.floor(
+                difference /
+                (
+                    1000 *
+                    60 *
+                    60 *
+                    24
+                )
+            ) + 1
+        );
+
+    }
+
+    if (
+        normalizedFrequency ===
+        "weekly"
+    ) {
+
+        const difference =
+            paymentDate.getTime() -
+            startDate.getTime();
+
+        return (
+            Math.floor(
+                difference /
+                (
+                    1000 *
+                    60 *
+                    60 *
+                    24 *
+                    7
+                )
+            ) + 1
+        );
+
+    }
+
+    if (
+        normalizedFrequency ===
+        "monthly"
+    ) {
+
+        return (
+            (
+                paymentDate.getFullYear() -
+                startDate.getFullYear()
+            ) * 12
+        )
+        +
+        (
+            paymentDate.getMonth() -
+            startDate.getMonth()
+        )
+        + 1;
+
+    }
+
+    return 1;
+
+}
+
 
 // ======================================================
 // CREATE GROUP
