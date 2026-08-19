@@ -424,7 +424,6 @@ async function loadCycleOverview() {
 
 }
 
-
 // ======================================================
 // LOAD MEMBERS
 // ======================================================
@@ -470,236 +469,323 @@ async function loadMembers() {
 
         }
 
-        members.forEach(
-            member => {
 
-                const item =
-                    document.createElement(
-                        "div"
-                    );
+        // ==================================================
+        // LOAD EACH MEMBER
+        // ==================================================
 
-                item.className =
-                    "card";
+        for (const member of members) {
 
-                let loanButtonHTML = "";
-
-                console.log("CURRENT GROUP TYPE:", currentGroupType);
-
-                if (
-                    currentGroupType ===
-                    "cooperative"
-                ) {
-
-                    loanButtonHTML = `
-
-                        <button
-                            type="button"
-                            class="create-loan-button"
-                        >
-                            Create Loan
-                        </button>
-
-                        <button
-                            type="button"
-                            class="view-loans-button"
-                        >
-                            View Loans
-                        </button>
-
-                    `;
-
-                }
-
-                item.innerHTML = `
-
-                    <h3>
-                        ${member.name}
-                    </h3>
-
-                    <button
-                        type="button"
-                        class="contribution-button"
-                    >
-                        Record Contribution
-                    </button>
-
-                    <button
-                        type="button"
-                        class="view-contributions-button"
-                    >
-                        View Contributions
-                    </button>
-
-                    <button
-                        type="button"
-                        class="payout-button"
-                    >
-                        Record Payout
-                    </button>
-
-                    <button
-                        type="button"
-                        class="view-payouts-button"
-                    >
-                        View Payouts
-                    </button>
-
-                    ${loanButtonHTML}
-
-                `;
-
-
-                // RECORD CONTRIBUTION
-
-                const contributionButton =
-                    item.querySelector(
-                        ".contribution-button"
-                    );
-
-                contributionButton.addEventListener(
-                    "click",
-                    () => {
-
-                        selectedContributionMemberId =
-                            member.id;
-
-                        selectedMember.textContent =
-                            `Member: ${member.name}`;
-
-                        contributionForm.style.display =
-                            "block";
-
-                        contributionForm.scrollIntoView({
-                            behavior: "smooth"
-                        });
-
-                    }
+            const item =
+                document.createElement(
+                    "div"
                 );
 
-
-                // VIEW CONTRIBUTIONS
-
-                const viewContributionsButton =
-                    item.querySelector(
-                        ".view-contributions-button"
-                    );
-
-                viewContributionsButton.addEventListener(
-                    "click",
-                    () => {
-
-                        loadMemberContributions(
-                            member.id
-                        );
-
-                    }
-                );
+            item.className =
+                "card";
 
 
-                // RECORD PAYOUT
+            // ==================================================
+            // LOAD MEMBER BALANCE
+            // ==================================================
 
-                const payoutButton =
-                    item.querySelector(
-                        ".payout-button"
-                    );
+            let memberBalance = 0;
 
-                payoutButton.addEventListener(
-                    "click",
-                    () => {
+            try {
 
-                        selectedPayoutMemberId =
-                            member.id;
-
-                        selectedPayoutMember.textContent =
-                            `Member: ${member.name}`;
-
-                        payoutForm.style.display =
-                            "block";
-
-                        payoutForm.scrollIntoView({
-                            behavior: "smooth"
-                        });
-
-                    }
-                );
-
-
-                // VIEW PAYOUTS
-
-                const viewPayoutsButton =
-                    item.querySelector(
-                        ".view-payouts-button"
-                    );
-
-                viewPayoutsButton.addEventListener(
-                    "click",
-                    () => {
-
-                        loadMemberPayouts(
-                            member.id
-                        );
-
-                    }
-                );
-
-
-                // CREATE LOAN
-
-                const createLoanButton =
-                    item.querySelector(
-                        ".create-loan-button"
-                    );
-
-                if (createLoanButton) {
-
-                    createLoanButton.addEventListener(
-                        "click",
-                        () => {
-
-                            showLoanForm(
-                                member.id,
-                                member.name
-                            );
-
+                const balanceResponse =
+                    await fetch(
+                        `/api/members/${member.id}/balance`,
+                        {
+                            cache: "no-store"
                         }
                     );
 
-                }
+                if (balanceResponse.ok) {
 
+                    const balanceData =
+                        await balanceResponse.json();
 
-                // VIEW LOANS
-
-                const viewLoansButton =
-                    item.querySelector(
-                        ".view-loans-button"
-                    );
-
-                if (viewLoansButton) {
-
-                    viewLoansButton.addEventListener(
-                        "click",
-                        () => {
-
-                            loadMemberLoans(
-                                member.id,
-                                member.name
-                            );
-
-                        }
-                    );
+                    memberBalance =
+                        Number(
+                            balanceData.balance || 0
+                        );
 
                 }
 
-                memberList.appendChild(
-                    item
+            } catch (balanceError) {
+
+                console.error(
+                    `Unable to load balance for member ${member.id}:`,
+                    balanceError
                 );
 
             }
-        );
+
+
+            // ==================================================
+            // LOAN BUTTONS
+            // ==================================================
+
+            let loanButtonHTML = "";
+
+            console.log(
+                "CURRENT GROUP TYPE:",
+                currentGroupType
+            );
+
+            if (
+                currentGroupType ===
+                "cooperative"
+            ) {
+
+                loanButtonHTML = `
+
+                    <button
+                        type="button"
+                        class="create-loan-button"
+                    >
+                        Create Loan
+                    </button>
+
+                    <button
+                        type="button"
+                        class="view-loans-button"
+                    >
+                        View Loans
+                    </button>
+
+                `;
+
+            }
+
+
+            // ==================================================
+            // MEMBER CARD
+            // ==================================================
+
+            item.innerHTML = `
+
+                <h3>
+                    ${member.name}
+                </h3>
+
+                <p>
+                    <strong>
+                        Savings Balance:
+                    </strong>
+
+                    ${formatMoney(
+                        memberBalance
+                    )}
+                </p>
+
+                <button
+                    type="button"
+                    class="contribution-button"
+                >
+                    Record Contribution
+                </button>
+
+                <button
+                    type="button"
+                    class="view-contributions-button"
+                >
+                    View Contributions
+                </button>
+
+                <button
+                    type="button"
+                    class="payout-button"
+                >
+                    Record Payout
+                </button>
+
+                <button
+                    type="button"
+                    class="view-payouts-button"
+                >
+                    View Payouts
+                </button>
+
+                ${loanButtonHTML}
+
+            `;
+
+
+            // ==================================================
+            // RECORD CONTRIBUTION
+            // ==================================================
+
+            const contributionButton =
+                item.querySelector(
+                    ".contribution-button"
+                );
+
+            contributionButton.addEventListener(
+                "click",
+                () => {
+
+                    selectedContributionMemberId =
+                        member.id;
+
+                    selectedMember.textContent =
+                        `Member: ${member.name}`;
+
+                    contributionForm.style.display =
+                        "block";
+
+                    contributionForm.scrollIntoView({
+                        behavior: "smooth"
+                    });
+
+                }
+            );
+
+
+            // ==================================================
+            // VIEW CONTRIBUTIONS
+            // ==================================================
+
+            const viewContributionsButton =
+                item.querySelector(
+                    ".view-contributions-button"
+                );
+
+            viewContributionsButton.addEventListener(
+                "click",
+                () => {
+
+                    loadMemberContributions(
+                        member.id
+                    );
+
+                }
+            );
+
+
+            // ==================================================
+            // RECORD PAYOUT
+            // ==================================================
+
+            const payoutButton =
+                item.querySelector(
+                    ".payout-button"
+                );
+
+            payoutButton.addEventListener(
+                "click",
+                () => {
+
+                    selectedPayoutMemberId =
+                        member.id;
+
+                    selectedPayoutMember.textContent =
+                        `Member: ${member.name}`;
+
+                    payoutForm.style.display =
+                        "block";
+
+                    payoutForm.scrollIntoView({
+                        behavior: "smooth"
+                    });
+
+                }
+            );
+
+
+            // ==================================================
+            // VIEW PAYOUTS
+            // ==================================================
+
+            const viewPayoutsButton =
+                item.querySelector(
+                    ".view-payouts-button"
+                );
+
+            viewPayoutsButton.addEventListener(
+                "click",
+                () => {
+
+                    loadMemberPayouts(
+                        member.id
+                    );
+
+                }
+            );
+
+
+            // ==================================================
+            // CREATE LOAN
+            // ==================================================
+
+            const createLoanButton =
+                item.querySelector(
+                    ".create-loan-button"
+                );
+
+            if (createLoanButton) {
+
+                createLoanButton.addEventListener(
+                    "click",
+                    () => {
+
+                        showLoanForm(
+                            member.id,
+                            member.name
+                        );
+
+                    }
+                );
+
+            }
+
+
+            // ==================================================
+            // VIEW LOANS
+            // ==================================================
+
+            const viewLoansButton =
+                item.querySelector(
+                    ".view-loans-button"
+                );
+
+            if (viewLoansButton) {
+
+                viewLoansButton.addEventListener(
+                    "click",
+                    () => {
+
+                        loadMemberLoans(
+                            member.id,
+                            member.name
+                        );
+
+                    }
+                );
+
+            }
+
+
+            // ==================================================
+            // ADD MEMBER CARD TO PAGE
+            // ==================================================
+
+            memberList.appendChild(
+                item
+            );
+
+        }
+
+
+        // ==================================================
+        // UPDATE SCHEDULE MEMBERS
+        // ==================================================
 
         updateScheduleMembers(
             members
         );
+
 
     } catch (error) {
 
@@ -717,6 +803,7 @@ async function loadMembers() {
     }
 
 }
+
 
 
 // ======================================================
@@ -1800,8 +1887,8 @@ function updateScheduleMembers(
         </option>
     `;
 
-    members.forEach(
-        member => {
+            members.forEach(
+            async member => {
 
             const option =
                 document.createElement(
@@ -3008,67 +3095,156 @@ async function loadSingleLoan(
         }
 
         if (
-            !data.repayments ||
-            data.repayments.length === 0
-        ) {
+    !data.repayments ||
+    data.repayments.length === 0
+) {
 
-            repaymentHistory.innerHTML = `
-                <p>
-                    No repayments recorded yet.
-                </p>
-            `;
+    repaymentHistory.innerHTML = `
+        <p>
+            No repayments recorded yet.
+        </p>
+    `;
 
-        } else {
+} else {
 
-            data.repayments.forEach(
-                repayment => {
+    // Group repayment records by repayment ID
+    const repaymentGroups = {};
 
-        const item =
-            document.createElement(
-                "div"
-            );
+    data.repayments.forEach(
+        repayment => {
 
-        item.className =
-            "card";
+            if (
+                !repaymentGroups[
+                    repayment.id
+                ]
+            ) {
 
-        item.innerHTML = `
+                repaymentGroups[
+                    repayment.id
+                ] = {
+                    amount:
+                        Number(
+                            repayment.amount || 0
+                        ),
 
-            <p>
-                <strong>
-                    Amount:
-                </strong>
+                    payment_date:
+                        repayment.payment_date,
 
-                ${formatMoney(
-                    repayment.amount
-                )}
-            </p>
+                    allocations: []
+                };
 
-            <p>
-                <strong>
-                    Date:
-                </strong>
+            }
 
-                ${repayment.payment_date}
-            </p>
+            if (
+                repayment.cycle_number !== null &&
+                repayment.cycle_number !== undefined
+            ) {
 
-            <p>
-                <strong>
-                    Cycle:
-                </strong>
+                repaymentGroups[
+                    repayment.id
+                ].allocations.push({
+                    cycle_number:
+                        repayment.cycle_number,
 
-                ${repayment.cycle_number ?? "Not recorded"}
-            </p>
+                    allocated_amount:
+                        Number(
+                            repayment.allocated_amount || 0
+                        )
+                });
 
-        `;
-
-        repaymentHistory.appendChild(
-            item
-        );
-
-    }
-);
+            }
 
         }
+    );
+
+    Object.values(
+        repaymentGroups
+    ).forEach(
+        repayment => {
+
+            const item =
+                document.createElement(
+                    "div"
+                );
+
+            item.className =
+                "card";
+
+            let allocationHtml = "";
+
+            if (
+                repayment.allocations.length >
+                0
+            ) {
+
+                allocationHtml = `
+                    <div>
+                        <strong>
+                            Allocation:
+                        </strong>
+
+                        ${repayment.allocations
+                            .map(
+                                allocation => `
+                                    <p>
+                                        Cycle
+                                        ${allocation.cycle_number}:
+                                        ${formatMoney(
+                                            allocation.allocated_amount
+                                        )}
+                                    </p>
+                                `
+                            )
+                            .join("")}
+                    </div>
+                `;
+
+            } else {
+
+                allocationHtml = `
+                    <p>
+                        <strong>
+                            Cycle:
+                        </strong>
+
+                        Not recorded
+                    </p>
+                `;
+
+            }
+
+            item.innerHTML = `
+
+                <p>
+                    <strong>
+                        Amount:
+                    </strong>
+
+                    ${formatMoney(
+                        repayment.amount
+                    )}
+                </p>
+
+                <p>
+                    <strong>
+                        Date:
+                    </strong>
+
+                    ${repayment.payment_date}
+                </p>
+
+                ${allocationHtml}
+
+            `;
+
+            repaymentHistory.appendChild(
+                item
+            );
+
+        }
+    );
+
+}
 
         const closeButton =
             document.getElementById(

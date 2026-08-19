@@ -836,10 +836,19 @@ router.get(
                         // ==================================================
 
                         const repaymentSql = `
-                            SELECT *
-                            FROM loan_repayments
-                            WHERE loan_id = ?
-                            ORDER BY id DESC
+                            SELECT
+                                r.id,
+                                r.loan_id,
+                                r.member_id,
+                                r.amount,
+                                r.payment_date,
+                                a.cycle_number,
+                                a.allocated_amount
+                                FROM loan_repayments r
+                                LEFT JOIN loan_repayment_allocations a
+                                ON a.repayment_id = r.id
+                                WHERE r.loan_id = ?
+                                ORDER BY r.id DESC, a.cycle_number ASC
                         `;
 
                         db.all(
