@@ -951,6 +951,14 @@ router.get(
                             total,
                             contribution
                         ) => {
+                    if (
+                            !contribution ||
+                            !contribution.payment_date
+                        ) {
+
+                        return total;
+
+                    }
 
                     const cycle =
                         getContributionCycle(
