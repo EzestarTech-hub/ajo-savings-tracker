@@ -1181,41 +1181,41 @@ router.get(
 
                         let cycleStatus;
 
+if (
+    memberCount === 0
+) {
 
-                        if (
-                            memberCount === 0
-                        ) {
+    cycleStatus =
+        "No Members";
 
-                            cycleStatus =
-                                "No Members";
+}
 
-                        }
+else if (
+    paidMembers ===
+    memberCount
+) {
 
-                        else if (
-                            paidMembers ===
-                            memberCount
-                        ) {
+    cycleStatus =
+        "On Track";
 
-                            cycleStatus =
-                                "On Track";
+}
 
-                        }
+else if (
+    currentCycleActual > 0
+) {
 
-                        else if (
-                            paidMembers > 0
-                        ) {
+    cycleStatus =
+        "Needs Attention";
 
-                            cycleStatus =
-                                "Needs Attention";
+}
 
-                        }
+else {
 
-                        else {
+    cycleStatus =
+        "No Contributions";
 
-                            cycleStatus =
-                                "No Contributions";
+}
 
-                        }
 
 
                         // ==================================================
