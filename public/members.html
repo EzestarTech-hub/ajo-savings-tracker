@@ -118,120 +118,220 @@
 
         async function loadMembers() {
 
-            membersMessage.textContent =
-                "Loading members...";
+    membersMessage.textContent =
+        "Loading members...";
 
-            membersList.innerHTML = "";
-
-
-            try {
-
-                const response =
-                    await fetch(
-                        "/api/members",
-                        {
-                            cache: "no-store"
-                        }
-                    );
+    membersList.innerHTML = "";
 
 
-                if (!response.ok) {
+    try {
 
-                    throw new Error(
-                        `Failed to load members: ${response.status}`
-                    );
-
+        const response =
+            await fetch(
+                "/api/members/summary",
+                {
+                    cache: "no-store"
                 }
+            );
 
 
-                const members =
-                    await response.json();
+        if (!response.ok) {
 
-
-                if (
-                    !Array.isArray(members) ||
-                    members.length === 0
-                ) {
-
-                    membersMessage.textContent =
-                        "No members found.";
-
-                    return;
-
-                }
-
-
-                membersMessage.textContent =
-                    `${members.length} members`;
-
-
-                members.forEach(member => {
-
-                    const card =
-                        document.createElement(
-                            "div"
-                        );
-
-
-                    card.className =
-                        "member-card";
-
-
-                    card.innerHTML = `
-
-                        <div>
-
-                            <strong>
-                                ${member.name}
-                            </strong>
-
-                            <p>
-                                Group:
-                                ${member.group_name}
-                            </p>
-
-                        </div>
-
-
-                        <div>
-
-                            <span>
-                                Member ID:
-                                ${member.id}
-                            </span>
-
-                        </div>
-
-                    `;
-
-
-                    membersList.appendChild(
-                        card
-                    );
-
-                });
-
-
-            } catch (error) {
-
-                console.error(
-                    "Members loading error:",
-                    error
-                );
-
-
-                membersMessage.textContent =
-                    "Unable to load members.";
-
-            }
+            throw new Error(
+                `Failed to load member summary: ${response.status}`
+            );
 
         }
 
 
-        refreshMembers.addEventListener(
-            "click",
-            loadMembers
+        const members =
+            await response.json();
+
+
+        if (
+            !Array.isArray(members) ||
+            members.length === 0
+        ) {
+
+            membersMessage.textContent =
+                "No members found.";
+
+            return;
+
+        }
+
+
+        membersMessage.textContent =
+            `${members.length} members`;
+
+
+        members.forEach(member => {
+
+            const card =
+                document.createElement(
+                    "div"
+                );
+
+
+            card.className =
+                "member-card";
+
+
+            const balance =
+                Number(
+                    member.balance || 0
+                );
+
+
+            let balanceClass =
+                "member-balance";
+
+
+            if (balance > 0) {
+
+                balanceClass =
+                    "member-balance positive";
+
+            } else if (balance < 0) {
+
+                balanceClass =
+                    "member-balance negative";
+
+            } else {
+
+                balanceClass =
+                    "member-balance zero";
+
+            }
+
+
+            card.innerHTML = `
+
+                <div class="member-card-header">
+
+                    <div>
+
+                        <strong>
+                            ${member.name}
+                        </strong>
+
+                        <p>
+                            ${member.group_name}
+                        </p>
+
+                    </div>
+
+
+                    <span>
+                        Member ID:
+                        ${member.id}
+                    </span>
+
+                </div>
+
+
+                <div class="member-financial-summary">
+
+                    <div>
+
+                        <strong>
+                            ₦${Number(
+                                member.totalContributions || 0
+                            ).toLocaleString()}
+                        </strong>
+
+                        <span>
+                            Contributions
+                        </span>
+
+                    </div>
+
+
+                    <div>
+
+                        <strong>
+                            ₦${Number(
+                                member.totalPayouts || 0
+                            ).toLocaleString()}
+                        </strong>
+
+                        <span>
+                            Payouts
+                        </span>
+
+                    </div>
+
+
+                    <div
+                        class="${balanceClass}"
+                    >
+
+                        <strong>
+                            ₦${balance.toLocaleString()}
+                        </strong>
+
+                        <span>
+                            Savings Balance
+                        </span>
+
+                    </div>
+
+
+                    <div>
+
+                        <strong>
+                            ₦${Number(
+                                member.totalLoans || 0
+                            ).toLocaleString()}
+                        </strong>
+
+                        <span>
+                            Total Loans
+                        </span>
+
+                    </div>
+
+
+                    <div>
+
+                        <strong>
+                            ₦${Number(
+                                member.outstandingLoans || 0
+                            ).toLocaleString()}
+                        </strong>
+
+                        <span>
+                            Outstanding Loan
+                        </span>
+
+                    </div>
+
+                </div>
+
+            `;
+
+
+            membersList.appendChild(
+                card
+            );
+
+        });
+
+
+    } catch (error) {
+
+        console.error(
+            "Members loading error:",
+            error
         );
+
+
+        membersMessage.textContent =
+            "Unable to load members.";
+
+    }
+
+}
 
 
         loadMembers();
