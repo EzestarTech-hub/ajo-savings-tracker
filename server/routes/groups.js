@@ -727,16 +727,31 @@ router.get(
 
                 const membersSql = `
 
-    SELECT
+                    SELECT
 
-        members.id AS member_id,
+                        members.id AS member_id,
 
-        members.name AS member_name,
+                        members.name AS member_name,
 
-        COALESCE(
-            SUM(contributions.amount),
-            0
-        ) AS actual_contribution
+                        COALESCE(
+                            SUM(contributions.amount),
+                            0
+                        ) AS actual_contribution,
+
+                    COALESCE(
+                        json_group_array(
+                            CASE
+                            WHEN contributions.id IS NOT NULL
+                            THEN json_object(
+                                'amount',
+                                contributions.amount,
+                                'payment_date',
+                                contributions.payment_date
+                    )
+                END
+            ),
+            '[]'
+        ) AS contribution_history
 
     FROM members
 
@@ -754,7 +769,8 @@ router.get(
     ORDER BY
         members.id ASC
 
-`;
+    `;
+
 
 
                 db.all(
@@ -923,12 +939,46 @@ router.get(
                         const memberOverview =
                             members.map(
                                 member => {
+                        const contributionHistory =
+                            JSON.parse(
+                                member.contribution_history ||
+                                    "[]"
+                            );
 
                         const actual =
-                            Number(
-                                member.actual_contribution ||
-                                0
+                            contributionHistory.reduce(
+                        (
+                            total,
+                            contribution
+                        ) => {
+
+                    const cycle =
+                        getContributionCycle(
+                        group.start_date,
+                        contribution.payment_date,
+                        group.frequency
                     );
+
+                if (
+                    cycle ===
+                    elapsedCycles
+             ) {
+
+                return (
+                    total +
+                    Number(
+                        contribution.amount ||
+                        0
+                    )
+                );
+
+            }
+
+            return total;
+
+        },
+        0
+    );
 
             const expected =
                 expectedPerMember;
@@ -986,6 +1036,12 @@ router.get(
                 actual:
                     actual,
 
+                totalActual:
+                    Number(
+                        member.actual_contribution ||
+                        0
+                ),
+
                 difference:
                     difference,
 
@@ -1014,7 +1070,7 @@ router.get(
 
                                     return (
                                         total +
-                                        member.actual
+                                        member.totalActual
                                     );
 
                                 },
