@@ -97,24 +97,32 @@ function getContributionCycle(
     }
 
     if (
-        normalizedFrequency ===
-        "monthly"
+    normalizedFrequency ===
+    "monthly"
+) {
+
+    let cycles =
+        (
+            paymentDate.getFullYear() -
+            startDate.getFullYear()
+        ) * 12;
+
+    cycles +=
+        paymentDate.getMonth() -
+        startDate.getMonth();
+
+    if (
+        paymentDate.getDate() <
+        startDate.getDate()
     ) {
 
-        return (
-            (
-                paymentDate.getFullYear() -
-                startDate.getFullYear()
-            ) * 12
-        )
-        +
-        (
-            paymentDate.getMonth() -
-            startDate.getMonth()
-        )
-        + 1;
+        cycles--;
 
     }
+
+    return cycles + 1;
+
+}
 
     return 1;
 
