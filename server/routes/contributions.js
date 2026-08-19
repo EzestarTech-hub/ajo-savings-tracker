@@ -6,28 +6,150 @@ const db = require("../db");
 
 router.post("/:id/contributions", (req, res) => {
 
-  const memberId = req.params.id;
-  const { amount, payment_date } = req.body;
+    const memberId =
+        Number(req.params.id);
 
-  const sql = `
-    INSERT INTO contributions (member_id, amount, payment_date)
-    VALUES (?, ?, ?)
-  `;
+    const {
+        amount,
+        payment_date
+    } = req.body;
 
-  db.run(sql, [memberId, amount, payment_date], function (err) {
 
-    if (err) {
-      return res.status(500).json({
-        error: err.message
-      });
+    // ==================================================
+    // VALIDATE MEMBER ID
+    // ==================================================
+
+    if (
+        !Number.isInteger(memberId) ||
+        memberId <= 0
+    ) {
+
+        return res.status(400).json({
+            error:
+                "Invalid member ID."
+        });
+
     }
 
-    res.status(201).json({
-      message: "Contribution recorded successfully!",
-      contributionId: this.lastID
-    });
 
-  });
+    // ==================================================
+    // VALIDATE CONTRIBUTION AMOUNT
+    // ==================================================
+
+    const contributionAmount =
+        Number(amount);
+
+    if (
+        !Number.isFinite(contributionAmount) ||
+        contributionAmount <= 0
+    ) {
+
+        return res.status(400).json({
+            error:
+                "Contribution amount must be greater than zero."
+        });
+
+    }
+
+
+    // ==================================================
+    // VALIDATE PAYMENT DATE
+    // ==================================================
+
+    if (
+        !payment_date ||
+        typeof payment_date !== "string"
+    ) {
+
+        return res.status(400).json({
+            error:
+                "Payment date is required."
+        });
+
+    }
+
+
+    // ==================================================
+    // CHECK MEMBER EXISTS
+    // ==================================================
+
+    const memberSql = `
+        SELECT id
+        FROM members
+        WHERE id = ?
+    `;
+
+    db.get(
+        memberSql,
+        [memberId],
+        (memberErr, member) => {
+
+            if (memberErr) {
+
+                return res.status(500).json({
+                    error:
+                        memberErr.message
+                });
+
+            }
+
+
+            if (!member) {
+
+                return res.status(404).json({
+                    error:
+                        "Member not found."
+                });
+
+            }
+
+
+            // ==================================================
+            // INSERT CONTRIBUTION
+            // ==================================================
+
+            const sql = `
+                INSERT INTO contributions (
+                    member_id,
+                    amount,
+                    payment_date
+                )
+                VALUES (?, ?, ?)
+            `;
+
+            db.run(
+                sql,
+                [
+                    memberId,
+                    contributionAmount,
+                    payment_date
+                ],
+                function (err) {
+
+                    if (err) {
+
+                        return res.status(500).json({
+                            error:
+                                err.message
+                        });
+
+                    }
+
+                    return res.status(201).json({
+
+                        message:
+                            "Contribution recorded successfully!",
+
+                        contributionId:
+                            this.lastID
+
+                    });
+
+                }
+            );
+
+        }
+    );
 
 });
 
