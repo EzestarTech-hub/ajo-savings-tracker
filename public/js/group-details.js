@@ -2962,23 +2962,40 @@ async function loadSingleLoan(
             </p>
 
             <p>
-                <strong>
-                    Paid:
-                </strong>
+    <strong>
+        Paid:
+    </strong>
 
-                ${formatMoney(
-                    schedule.paid_amount
-                )}
-            </p>
+    ${formatMoney(
+        schedule.paid_amount
+    )}
+</p>
 
-            <p>
-                <strong>
-                    Status:
-                </strong>
+<p>
+    <strong>
+        Remaining:
+    </strong>
 
-                ${schedule.status}
-            </p>
+    ${formatMoney(
+        Math.max(
+            0,
+            Number(
+                schedule.expected_amount || 0
+            ) -
+            Number(
+                schedule.paid_amount || 0
+            )
+        )
+    )}
+</p>
 
+<p>
+    <strong>
+        Status:
+    </strong>
+
+    ${schedule.status}
+</p>
         `;
 
         scheduleList.appendChild(
