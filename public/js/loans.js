@@ -60,7 +60,6 @@ async function loadLoanSummary() {
                 }
             );
 
-
         if (!response.ok) {
 
             throw new Error(
@@ -69,38 +68,25 @@ async function loadLoanSummary() {
 
         }
 
-
         const data =
             await response.json();
 
 
-        // ===============================
-        // TOTAL LOANS
-        // ===============================
-
         if (totalLoans) {
 
             totalLoans.textContent =
-                data.totalLoans;
+                data.totalLoans || 0;
 
         }
 
-
-        // ===============================
-        // ACTIVE LOANS
-        // ===============================
 
         if (activeLoans) {
 
             activeLoans.textContent =
-                data.activeLoans;
+                data.activeLoans || 0;
 
         }
 
-
-        // ===============================
-        // TOTAL LOANED
-        // ===============================
 
         if (totalLoaned) {
 
@@ -112,10 +98,6 @@ async function loadLoanSummary() {
         }
 
 
-        // ===============================
-        // OUTSTANDING LOANS
-        // ===============================
-
         if (outstandingLoans) {
 
             outstandingLoans.textContent =
@@ -125,10 +107,6 @@ async function loadLoanSummary() {
 
         }
 
-
-        // ===============================
-        // LOAN REPAYMENTS
-        // ===============================
 
         if (totalLoanRepayments) {
 
@@ -140,10 +118,6 @@ async function loadLoanSummary() {
         }
 
 
-        // ===============================
-        // INTEREST
-        // ===============================
-
         if (totalInterest) {
 
             totalInterest.textContent =
@@ -152,7 +126,6 @@ async function loadLoanSummary() {
                 );
 
         }
-
 
     } catch (error) {
 
@@ -166,21 +139,28 @@ async function loadLoanSummary() {
 }
 
 
+// ======================================================
+// LOAD LOAN ACTIVITY
+// ======================================================
+
 async function loadLoanActivity() {
 
     try {
 
-        const response = await fetch(
-            "/api/dashboard/loan-activity",
-            {
-                cache: "no-store"
-            }
-        );
+        const response =
+            await fetch(
+                "/api/dashboard/loan-activity",
+                {
+                    cache: "no-store"
+                }
+            );
+
 
         console.log(
             "Loan activity response:",
             response.status
         );
+
 
         if (!response.ok) {
 
@@ -190,17 +170,16 @@ async function loadLoanActivity() {
 
         }
 
-        const loans = await response.json();
+
+        const loans =
+            await response.json();
+
 
         console.log(
             "Loan activity data:",
             loans
         );
 
-
-        // ==========================================
-        // CHECK RESULT
-        // ==========================================
 
         if (
             !Array.isArray(loans) ||
@@ -214,255 +193,272 @@ async function loadLoanActivity() {
             `;
 
             return;
+
         }
 
-
-        // ==========================================
-        // CLEAR LOADING MESSAGE
-        // ==========================================
 
         loanActivity.innerHTML = "";
 
 
-        // ==========================================
-        // DISPLAY EACH LOAN
-        // ==========================================
+        // ==================================================
+        // DISPLAY LOANS
+        // ==================================================
 
-        loans.forEach(loan => {
+        loans.forEach(
+            loan => {
 
-            const item =
-                document.createElement("div");
+                const item =
+                    document.createElement(
+                        "div"
+                    );
 
-            item.className =
-                "loan-activity-item";
+
+                item.className =
+                    "loan-activity-item";
 
 
-            // ======================================
-            // REPAYMENT PROGRESS
-            // ======================================
+                // ==========================================
+                // REPAYMENT PROGRESS
+                // ==========================================
 
-            const progress =
-                Math.max(
-                    0,
-                    Math.min(
-                        100,
-                        Number(
-                            loan.repaymentProgress || 0
+                const progress =
+                    Math.max(
+                        0,
+                        Math.min(
+                            100,
+                            Number(
+                                loan.repaymentProgress || 0
+                            )
                         )
-                    )
-                );
+                    );
 
 
-            // ======================================
-            // STATUS CLASS
-            // ======================================
+                // ==========================================
+                // STATUS CLASS
+                // ==========================================
 
-            let statusClass =
-                "status-pending";
+                let statusClass =
+                    "status-pending";
 
-            if (
-                loan.status === "Paid"
-            ) {
 
-                statusClass =
-                    "status-paid";
+                if (
+                    loan.status === "Paid"
+                ) {
 
-            } else if (
-                loan.status === "Active"
-            ) {
+                    statusClass =
+                        "status-paid";
 
-                statusClass =
-                    "status-active";
-
-            }
-
-
-            // ======================================
-            // DUE DATE
-            // ======================================
-
-            const dueDate =
-                loan.dueDate || "Not set";
-
-
-            // ======================================
-            // CREATE LOAN CARD
-            // ======================================
-
-            item.innerHTML = `
-
-                <div class="loan-activity-header">
-
-                    <div>
-
-                        <strong>
-                            ${loan.memberName}
-                        </strong>
-
-                        <p>
-                            ${loan.groupName}
-                        </p>
-
-                    </div>
-
-                    <span
-                        class="status-badge ${statusClass}"
-                    >
-                        ${loan.status}
-                    </span>
-
-                </div>
-
-
-                <div class="loan-activity-details">
-
-                    <div>
-
-                        <strong>
-                            ${formatMoney(
-                                loan.principalAmount
-                            )}
-                        </strong>
-
-                        <span>
-                            Principal
-                        </span>
-
-                    </div>
-
-
-                    <div>
-
-                        <strong>
-                            ${formatMoney(
-                                loan.interestAmount
-                            )}
-                        </strong>
-
-                        <span>
-                            Interest
-                        </span>
-
-                    </div>
-
-
-                    <div>
-
-                        <strong>
-                            ${formatMoney(
-                                loan.totalRepayment
-                            )}
-                        </strong>
-
-                        <span>
-                            Total Repayment
-                        </span>
-
-                    </div>
-
-
-                    <div>
-
-                        <strong>
-                            ${formatMoney(
-                                loan.amountRepaid
-                            )}
-                        </strong>
-
-                        <span>
-                            Repaid
-                        </span>
-
-                    </div>
-
-
-                    <div>
-
-                        <strong>
-                            ${formatMoney(
-                                loan.outstandingBalance
-                            )}
-                        </strong>
-
-                        <span>
-                            Outstanding
-                        </span>
-
-                    </div>
-
-                </div>
-
-
-                <div class="loan-progress-container">
-
-                    <div class="loan-progress-label">
-
-                        <span>
-                            Repayment Progress
-                        </span>
-
-                        <strong>
-                            ${progress}%
-                        </strong>
-
-                    </div>
-
-
-                    <div class="loan-progress-bar">
-
-                        <div
-                            class="loan-progress-fill"
-                            style="width: ${progress}%"
-                        ></div>
-
-                    </div>
-
-                </div>
-
-
-                <div class="loan-activity-footer">
-
-                    <span>
-                        Loan Date:
-                        ${loan.loanDate || "Not set"}
-                    </span>
-
-                    <span>
-                        Due:
-                        ${dueDate}
-                    </span>
-
-                </div>
-
-
-                <!-- =====================================
-                     REPAYMENT BUTTON
-                ====================================== -->
-
-                ${
+                } else if (
                     loan.status === "Active"
-                        ? `
-                            <div class="loan-repayment-action">
+                ) {
 
-                                <button
-                                    type="button"
-                                    class="repay-loan-button"
-                                    data-loan-id="${loan.id}"
-                                >
-                                    Make Repayment
-                                </button>
+                    statusClass =
+                        "status-active";
 
-                            </div>
-                        `
-                        : ""
                 }
 
-            `;
+
+                // ==========================================
+                // DUE DATE
+                // ==========================================
+
+                const dueDate =
+                    loan.dueDate ||
+                    "Not set";
 
 
-            loanActivity.appendChild(item);
+                // ==========================================
+                // CREATE LOAN CARD
+                // ==========================================
 
-        });
+                item.innerHTML = `
+
+                    <div class="loan-activity-header">
+
+                        <div>
+
+                            <strong>
+                                ${loan.memberName}
+                            </strong>
+
+                            <p>
+                                ${loan.groupName}
+                            </p>
+
+                        </div>
+
+
+                        <span
+                            class="status-badge ${statusClass}"
+                        >
+                            ${loan.status}
+                        </span>
+
+                    </div>
+
+
+                    <div class="loan-activity-details">
+
+                        <div>
+
+                            <strong>
+                                ${formatMoney(
+                                    loan.principalAmount
+                                )}
+                            </strong>
+
+                            <span>
+                                Principal
+                            </span>
+
+                        </div>
+
+
+                        <div>
+
+                            <strong>
+                                ${formatMoney(
+                                    loan.interestAmount
+                                )}
+                            </strong>
+
+                            <span>
+                                Interest
+                            </span>
+
+                        </div>
+
+
+                        <div>
+
+                            <strong>
+                                ${formatMoney(
+                                    loan.totalRepayment
+                                )}
+                            </strong>
+
+                            <span>
+                                Total Repayment
+                            </span>
+
+                        </div>
+
+
+                        <div>
+
+                            <strong>
+                                ${formatMoney(
+                                    loan.amountRepaid
+                                )}
+                            </strong>
+
+                            <span>
+                                Repaid
+                            </span>
+
+                        </div>
+
+
+                        <div>
+
+                            <strong>
+                                ${formatMoney(
+                                    loan.outstandingBalance
+                                )}
+                            </strong>
+
+                            <span>
+                                Outstanding
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="loan-progress-container">
+
+                        <div class="loan-progress-label">
+
+                            <span>
+                                Repayment Progress
+                            </span>
+
+                            <strong>
+                                ${progress}%
+                            </strong>
+
+                        </div>
+
+
+                        <div class="loan-progress-bar">
+
+                            <div
+                                class="loan-progress-fill"
+                                style="width: ${progress}%"
+                            ></div>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="loan-activity-footer">
+
+                        <span>
+                            Loan Date:
+                            ${loan.loanDate || "Not set"}
+                        </span>
+
+
+                        <span>
+                            Due:
+                            ${dueDate}
+                        </span>
+
+                    </div>
+
+
+                    <!-- =====================================
+                         LOAN ACTIONS
+                    ====================================== -->
+
+                    <div class="loan-actions">
+
+                        <button
+                            type="button"
+                            class="view-loan-details-button"
+                            data-loan-id="${loan.id}"
+                        >
+                            View Loan Details
+                        </button>
+
+
+                        ${
+                            loan.status === "Active"
+                                ? `
+                                    <button
+                                        type="button"
+                                        class="repay-loan-button"
+                                        data-loan-id="${loan.id}"
+                                    >
+                                        Make Repayment
+                                    </button>
+                                  `
+                                : ""
+                        }
+
+                    </div>
+
+                `;
+
+
+                loanActivity.appendChild(
+                    item
+                );
+
+            }
+        );
 
 
     } catch (error) {
@@ -471,6 +467,7 @@ async function loadLoanActivity() {
             "Loan activity error:",
             error
         );
+
 
         loanActivity.innerHTML = `
             <p>
@@ -493,7 +490,9 @@ async function loadLoans() {
 
         loadLoanSummary(),
 
-        loadLoanActivity()
+        loadLoanActivity(),
+
+        loadLoanGroups()
 
     ]);
 
@@ -512,6 +511,7 @@ if (refreshLoans) {
     );
 
 }
+
 
 // ======================================================
 // CREATE LOAN FORM
@@ -573,6 +573,7 @@ async function loadLoanGroups() {
         return;
     }
 
+
     try {
 
         const response =
@@ -583,6 +584,7 @@ async function loadLoanGroups() {
                 }
             );
 
+
         if (!response.ok) {
 
             throw new Error(
@@ -591,8 +593,10 @@ async function loadLoanGroups() {
 
         }
 
+
         const groups =
             await response.json();
+
 
         loanGroup.innerHTML = `
             <option value="">
@@ -600,20 +604,31 @@ async function loadLoanGroups() {
             </option>
         `;
 
-        groups.forEach(group => {
 
-            const option =
-                document.createElement("option");
+        groups.forEach(
+            group => {
 
-            option.value =
-                group.id;
+                const option =
+                    document.createElement(
+                        "option"
+                    );
 
-            option.textContent =
-                group.name;
 
-            loanGroup.appendChild(option);
+                option.value =
+                    group.id;
 
-        });
+
+                option.textContent =
+                    group.name;
+
+
+                loanGroup.appendChild(
+                    option
+                );
+
+            }
+        );
+
 
     } catch (error) {
 
@@ -631,11 +646,14 @@ async function loadLoanGroups() {
 // LOAD MEMBERS FOR SELECTED GROUP
 // ======================================================
 
-async function loadLoanMembers(groupId) {
+async function loadLoanMembers(
+    groupId
+) {
 
     if (!loanMember) {
         return;
     }
+
 
     loanMember.innerHTML = `
         <option value="">
@@ -643,7 +661,10 @@ async function loadLoanMembers(groupId) {
         </option>
     `;
 
-    loanMember.disabled = true;
+
+    loanMember.disabled =
+        true;
+
 
     try {
 
@@ -655,6 +676,7 @@ async function loadLoanMembers(groupId) {
                 }
             );
 
+
         if (!response.ok) {
 
             throw new Error(
@@ -663,8 +685,10 @@ async function loadLoanMembers(groupId) {
 
         }
 
+
         const members =
             await response.json();
+
 
         loanMember.innerHTML = `
             <option value="">
@@ -672,23 +696,35 @@ async function loadLoanMembers(groupId) {
             </option>
         `;
 
-        members.forEach(member => {
 
-            const option =
-                document.createElement("option");
+        members.forEach(
+            member => {
 
-            option.value =
-                member.id;
+                const option =
+                    document.createElement(
+                        "option"
+                    );
 
-            option.textContent =
-                member.name;
 
-            loanMember.appendChild(option);
+                option.value =
+                    member.id;
 
-        });
+
+                option.textContent =
+                    member.name;
+
+
+                loanMember.appendChild(
+                    option
+                );
+
+            }
+        );
+
 
         loanMember.disabled =
             members.length === 0;
+
 
     } catch (error) {
 
@@ -696,6 +732,7 @@ async function loadLoanMembers(groupId) {
             "Load loan members error:",
             error
         );
+
 
         loanMember.innerHTML = `
             <option value="">
@@ -718,25 +755,30 @@ function updateLoanPreview() {
         return;
     }
 
+
     const amount =
         Number(
             loanAmount?.value || 0
         );
+
 
     const interestRate =
         Number(
             selectedLoanGroup.loan_interest_rate || 0
         );
 
+
     const repaymentMonths =
         Number(
             selectedLoanGroup.loan_repayment_months || 0
         );
 
+
     const interestAmount =
         amount *
         interestRate /
         100;
+
 
     const totalRepayment =
         amount +
@@ -794,8 +836,10 @@ if (loanGroup) {
             const groupId =
                 loanGroup.value;
 
+
             selectedLoanGroup =
                 null;
+
 
             if (!groupId) {
 
@@ -805,8 +849,10 @@ if (loanGroup) {
                     </option>
                 `;
 
+
                 loanMember.disabled =
                     true;
+
 
                 updateLoanPreview();
 
@@ -825,6 +871,7 @@ if (loanGroup) {
                         }
                     );
 
+
                 if (!response.ok) {
 
                     throw new Error(
@@ -833,8 +880,10 @@ if (loanGroup) {
 
                 }
 
+
                 const groups =
                     await response.json();
+
 
                 selectedLoanGroup =
                     groups.find(
@@ -857,7 +906,9 @@ if (loanGroup) {
                     groupId
                 );
 
+
                 updateLoanPreview();
+
 
             } catch (error) {
 
@@ -899,8 +950,10 @@ if (loanDate) {
             .toISOString()
             .split("T")[0];
 
+
     loanDate.value =
         today;
+
 
     loanDate.min =
         today;
@@ -922,6 +975,7 @@ if (cancelLoan) {
                 loanForm.reset();
             }
 
+
             if (loanMember) {
 
                 loanMember.innerHTML = `
@@ -930,13 +984,16 @@ if (cancelLoan) {
                     </option>
                 `;
 
+
                 loanMember.disabled =
                     true;
 
             }
 
+
             selectedLoanGroup =
                 null;
+
 
             updateLoanPreview();
 
@@ -947,37 +1004,937 @@ if (cancelLoan) {
 
 
 // ======================================================
-// LOAD EVERYTHING
+// VIEW LOAN DETAILS
 // ======================================================
 
-async function loadLoans() {
+document.addEventListener(
+    "click",
+    async event => {
 
-    await Promise.all([
+        const button =
+            event.target.closest(
+                ".view-loan-details-button"
+            );
 
-        loadLoanSummary(),
 
-        loadLoanActivity(),
+        if (!button) {
+            return;
+        }
 
-        loadLoanGroups()
 
-    ]);
+        const loanId =
+            button.dataset.loanId;
 
-}
+
+        if (!loanId) {
+
+            alert(
+                "Loan ID was not found."
+            );
+
+            return;
+
+        }
+
+
+        const loanCard =
+            button.closest(
+                ".loan-activity-item"
+            );
+
+
+        if (!loanCard) {
+            return;
+        }
+
+
+        // ==============================================
+        // PREVENT DUPLICATE DETAILS
+        // ==============================================
+
+        const existingDetails =
+            loanCard.querySelector(
+                ".loan-details-panel"
+            );
+
+
+        if (existingDetails) {
+
+            existingDetails.remove();
+
+            button.textContent =
+                "View Loan Details";
+
+            return;
+
+        }
+
+
+        try {
+
+            button.disabled =
+                true;
+
+
+            button.textContent =
+                "Loading...";
+
+
+            const response =
+                await fetch(
+                    `/api/loans/${loanId}`,
+                    {
+                        cache: "no-store"
+                    }
+                );
+
+
+            const data =
+                await response.json();
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    data.error ||
+                    "Unable to load loan details."
+                );
+
+            }
+
+
+            const loan =
+                data.loan;
+
+
+            const schedule =
+                Array.isArray(
+                    data.schedule
+                )
+                    ? data.schedule
+                    : [];
+
+
+            const repayments =
+                Array.isArray(
+                    data.repayments
+                )
+                    ? data.repayments
+                    : [];
+
+
+            // ==========================================
+            // BUILD SCHEDULE HTML
+            // ==========================================
+
+            let scheduleHtml =
+                "";
+
+
+            if (
+                schedule.length === 0
+            ) {
+
+                scheduleHtml = `
+                    <p>
+                        No repayment schedule found.
+                    </p>
+                `;
+
+            } else {
+
+                scheduleHtml = schedule
+                    .map(
+                        cycle => {
+
+                            const expected =
+                                Number(
+                                    cycle.expected_amount || 0
+                                );
+
+
+                            const paid =
+                                Number(
+                                    cycle.paid_amount || 0
+                                );
+
+
+                            const remaining =
+                                Math.max(
+                                    0,
+                                    expected - paid
+                                );
+
+
+                            return `
+
+                                <div class="loan-detail-schedule-item">
+
+                                    <strong>
+                                        Cycle
+                                        ${cycle.cycle_number}
+                                    </strong>
+
+
+                                    <span>
+                                        Due:
+                                        ${cycle.due_date}
+                                    </span>
+
+
+                                    <span>
+                                        Expected:
+                                        ${formatMoney(
+                                            expected
+                                        )}
+                                    </span>
+
+
+                                    <span>
+                                        Paid:
+                                        ${formatMoney(
+                                            paid
+                                        )}
+                                    </span>
+
+
+                                    <span>
+                                        Remaining:
+                                        ${formatMoney(
+                                            remaining
+                                        )}
+                                    </span>
+
+
+                                    <span>
+                                        Status:
+                                        ${cycle.status}
+                                    </span>
+
+                                </div>
+
+                            `;
+
+                        }
+                    )
+                    .join("");
+
+            }
+
+
+            // ==========================================
+            // BUILD REPAYMENT HISTORY
+            // ==========================================
+
+            let repaymentHtml =
+                "";
+
+
+            if (
+                repayments.length === 0
+            ) {
+
+                repaymentHtml = `
+                    <p>
+                        No repayments recorded yet.
+                    </p>
+                `;
+
+            } else {
+
+                repaymentHtml = repayments
+                    .map(
+                        repayment => {
+
+                            return `
+
+                                <div class="loan-detail-repayment-item">
+
+                                    <strong>
+                                        Amount:
+                                        ${formatMoney(
+                                            repayment.amount
+                                        )}
+                                    </strong>
+
+
+                                    <span>
+                                        Date:
+                                        ${
+                                            repayment.payment_date ||
+                                            repayment.repayment_date ||
+                                            "-"
+                                        }
+                                    </span>
+
+
+                                    ${
+                                        repayment.cycle_number !== null &&
+                                        repayment.cycle_number !== undefined
+                                            ? `
+                                                <span>
+                                                    Cycle:
+                                                    ${repayment.cycle_number}
+                                                </span>
+                                              `
+                                            : ""
+                                    }
+
+                                </div>
+
+                            `;
+
+                        }
+                    )
+                    .join("");
+
+            }
+
+
+            // ==========================================
+            // CREATE DETAILS PANEL
+            // ==========================================
+
+            const details =
+                document.createElement(
+                    "div"
+                );
+
+
+            details.className =
+                "loan-details-panel";
+
+
+            details.innerHTML = `
+
+                <div class="loan-details-content">
+
+                    <h3>
+                        Loan Details
+                    </h3>
+
+
+                    <p>
+                        <strong>
+                            Loan ID:
+                        </strong>
+                        ${loan.id}
+                    </p>
+
+
+                    <p>
+                        <strong>
+                            Member:
+                        </strong>
+                        ${loan.member_name}
+                    </p>
+
+
+                    <p>
+                        <strong>
+                            Group:
+                        </strong>
+                        ${loan.group_name}
+                    </p>
+
+
+                    <p>
+                        <strong>
+                            Principal:
+                        </strong>
+                        ${formatMoney(
+                            loan.principal_amount
+                        )}
+                    </p>
+
+
+                    <p>
+                        <strong>
+                            Interest Rate:
+                        </strong>
+                        ${Number(
+                            loan.interest_rate || 0
+                        )}%
+                    </p>
+
+
+                    <p>
+                        <strong>
+                            Interest Amount:
+                        </strong>
+                        ${formatMoney(
+                            loan.interest_amount
+                        )}
+                    </p>
+
+
+                    <p>
+                        <strong>
+                            Total Repayment:
+                        </strong>
+                        ${formatMoney(
+                            loan.total_repayment
+                        )}
+                    </p>
+
+
+                    <p>
+                        <strong>
+                            Amount Repaid:
+                        </strong>
+                        ${formatMoney(
+                            loan.amount_repaid
+                        )}
+                    </p>
+
+
+                    <p>
+                        <strong>
+                            Outstanding:
+                        </strong>
+                        ${formatMoney(
+                            loan.outstanding_balance
+                        )}
+                    </p>
+
+
+                    <p>
+                        <strong>
+                            Status:
+                        </strong>
+                        ${loan.status}
+                    </p>
+
+
+                    <hr>
+
+
+                    <h4>
+                        Repayment Schedule
+                    </h4>
+
+
+                    <div class="loan-detail-schedule">
+
+                        ${scheduleHtml}
+
+                    </div>
+
+
+                    <hr>
+
+
+                    <h4>
+                        Repayment History
+                    </h4>
+
+
+                    <div class="loan-detail-repayments">
+
+                        ${repaymentHtml}
+
+                    </div>
+
+
+                    <button
+                        type="button"
+                        class="close-loan-details-button"
+                    >
+                        Close Details
+                    </button>
+
+                </div>
+
+            `;
+
+
+            loanCard.appendChild(
+                details
+            );
+
+
+            button.disabled =
+                false;
+
+
+            button.textContent =
+                "Hide Loan Details";
+
+
+            details.scrollIntoView({
+                behavior: "smooth",
+                block: "nearest"
+            });
+
+
+        } catch (error) {
+
+            console.error(
+                "Loan details error:",
+                error
+            );
+
+
+            alert(
+                `Unable to load loan details: ${error.message}`
+            );
+
+
+            button.disabled =
+                false;
+
+
+            button.textContent =
+                "View Loan Details";
+
+        }
+
+    }
+);
 
 
 // ======================================================
-// REFRESH BUTTON
+// CLOSE LOAN DETAILS
 // ======================================================
 
-if (refreshLoans) {
+document.addEventListener(
+    "click",
+    event => {
 
-    refreshLoans.addEventListener(
-        "click",
-        loadLoans
-    );
+        const button =
+            event.target.closest(
+                ".close-loan-details-button"
+            );
 
-}
 
+        if (!button) {
+            return;
+        }
+
+
+        const details =
+            button.closest(
+                ".loan-details-panel"
+            );
+
+
+        if (details) {
+
+            const loanCard =
+                details.closest(
+                    ".loan-activity-item"
+                );
+
+
+            details.remove();
+
+
+            if (loanCard) {
+
+                const viewButton =
+                    loanCard.querySelector(
+                        ".view-loan-details-button"
+                    );
+
+
+                if (viewButton) {
+
+                    viewButton.textContent =
+                        "View Loan Details";
+
+                }
+
+            }
+
+        }
+
+    }
+);
+
+
+// ======================================================
+// REPAYMENT BUTTON
+// ======================================================
+
+document.addEventListener(
+    "click",
+    event => {
+
+        const button =
+            event.target.closest(
+                ".repay-loan-button"
+            );
+
+
+        if (!button) {
+            return;
+        }
+
+
+        const loanId =
+            button.dataset.loanId;
+
+
+        console.log(
+            "Repayment button clicked. Loan ID:",
+            loanId
+        );
+
+
+        // ==============================================
+        // FIND LOAN CARD
+        // ==============================================
+
+        const loanCard =
+            button.closest(
+                ".loan-activity-item"
+            );
+
+
+        if (!loanCard) {
+            return;
+        }
+
+
+        // ==============================================
+        // PREVENT DUPLICATE FORM
+        // ==============================================
+
+        const existingForm =
+            loanCard.querySelector(
+                ".repayment-form"
+            );
+
+
+        if (existingForm) {
+            return;
+        }
+
+
+        // ==============================================
+        // CREATE REPAYMENT FORM
+        // ==============================================
+
+        const repaymentForm =
+            document.createElement(
+                "div"
+            );
+
+
+        repaymentForm.className =
+            "repayment-form";
+
+
+        repaymentForm.innerHTML = `
+
+            <div class="repayment-form-content">
+
+                <h4>
+                    Make Loan Repayment
+                </h4>
+
+
+                <label>
+                    Repayment Amount
+                </label>
+
+
+                <input
+                    type="number"
+                    class="repayment-amount"
+                    placeholder="Enter amount"
+                    min="1"
+                    step="0.01"
+                />
+
+
+                <label>
+                    Repayment Date
+                </label>
+
+
+                <input
+                    type="date"
+                    class="repayment-date"
+                    value="${
+                        new Date()
+                            .toISOString()
+                            .split("T")[0]
+                    }"
+                />
+
+
+                <div class="repayment-form-actions">
+
+                    <button
+                        type="button"
+                        class="submit-repayment-button"
+                        data-loan-id="${loanId}"
+                    >
+                        Submit Repayment
+                    </button>
+
+
+                    <button
+                        type="button"
+                        class="cancel-repayment-button"
+                    >
+                        Cancel
+                    </button>
+
+                </div>
+
+            </div>
+
+        `;
+
+
+        loanCard.appendChild(
+            repaymentForm
+        );
+
+    }
+);
+
+
+// ======================================================
+// CANCEL REPAYMENT
+// ======================================================
+
+document.addEventListener(
+    "click",
+    event => {
+
+        const button =
+            event.target.closest(
+                ".cancel-repayment-button"
+            );
+
+
+        if (!button) {
+            return;
+        }
+
+
+        const repaymentForm =
+            button.closest(
+                ".repayment-form"
+            );
+
+
+        if (repaymentForm) {
+
+            repaymentForm.remove();
+
+        }
+
+    }
+);
+
+
+// ======================================================
+// SUBMIT REPAYMENT
+// ======================================================
+
+document.addEventListener(
+    "click",
+    async event => {
+
+        const button =
+            event.target.closest(
+                ".submit-repayment-button"
+            );
+
+
+        if (!button) {
+            return;
+        }
+
+
+        const loanId =
+            button.dataset.loanId;
+
+
+        const repaymentForm =
+            button.closest(
+                ".repayment-form"
+            );
+
+
+        if (!repaymentForm) {
+            return;
+        }
+
+
+        const amountInput =
+            repaymentForm.querySelector(
+                ".repayment-amount"
+            );
+
+
+        const dateInput =
+            repaymentForm.querySelector(
+                ".repayment-date"
+            );
+
+
+        const amount =
+            Number(
+                amountInput.value
+            );
+
+
+        const repaymentDate =
+            dateInput.value;
+
+
+        // ==============================================
+        // VALIDATE AMOUNT
+        // ==============================================
+
+        if (
+            !Number.isFinite(amount) ||
+            amount <= 0
+        ) {
+
+            alert(
+                "Please enter a valid repayment amount."
+            );
+
+            return;
+
+        }
+
+
+        // ==============================================
+        // VALIDATE DATE
+        // ==============================================
+
+        if (!repaymentDate) {
+
+            alert(
+                "Please select a repayment date."
+            );
+
+            return;
+
+        }
+
+
+        console.log(
+            "Submitting repayment:",
+            {
+                loanId,
+                amount,
+                repaymentDate
+            }
+        );
+
+
+        try {
+
+            button.disabled =
+                true;
+
+
+            button.textContent =
+                "Processing...";
+
+
+            // ==========================================
+            // SEND REPAYMENT TO BACKEND
+            // ==========================================
+
+            const response =
+                await fetch(
+                    `/api/loans/${loanId}/repay`,
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body: JSON.stringify({
+
+                            amount:
+                                amount,
+
+                            repayment_date:
+                                repaymentDate
+
+                        })
+
+                    }
+                );
+
+
+            const data =
+                await response.json();
+
+
+            console.log(
+                "Repayment response:",
+                data
+            );
+
+
+            // ==========================================
+            // HANDLE ERROR
+            // ==========================================
+
+            if (!response.ok) {
+
+                throw new Error(
+                    data.error ||
+                    "Unable to record repayment."
+                );
+
+            }
+
+
+            // ==========================================
+            // SUCCESS
+            // ==========================================
+
+            alert(
+                data.message ||
+                "Repayment recorded successfully!"
+            );
+
+
+            // ==========================================
+            // RELOAD LOAN INFORMATION
+            // ==========================================
+
+            await loadLoans();
+
+
+        } catch (error) {
+
+            console.error(
+                "Repayment error:",
+                error
+            );
+
+
+            alert(
+                `Unable to record repayment: ${error.message}`
+            );
+
+
+            button.disabled =
+                false;
+
+
+            button.textContent =
+                "Submit Repayment";
+
+        }
+
+    }
+);
 
 
 // ======================================================
@@ -985,328 +1942,3 @@ if (refreshLoans) {
 // ======================================================
 
 loadLoans();
-
-// ======================================================
-// REPAYMENT BUTTON
-// ======================================================
-
-document.addEventListener("click", (event) => {
-
-    const button =
-        event.target.closest(
-            ".repay-loan-button"
-        );
-
-    if (!button) {
-        return;
-    }
-
-    const loanId =
-        button.dataset.loanId;
-
-    console.log(
-        "Repayment button clicked. Loan ID:",
-        loanId
-    );
-
-
-    // ==============================================
-    // FIND LOAN CARD
-    // ==============================================
-
-    const loanCard =
-        button.closest(
-            ".loan-activity-item"
-        );
-
-    if (!loanCard) {
-        return;
-    }
-
-
-    // ==============================================
-    // PREVENT DUPLICATE FORM
-    // ==============================================
-
-    const existingForm =
-        loanCard.querySelector(
-            ".repayment-form"
-        );
-
-    if (existingForm) {
-        return;
-    }
-
-
-    // ==============================================
-    // CREATE REPAYMENT FORM
-    // ==============================================
-
-    const repaymentForm =
-        document.createElement("div");
-
-    repaymentForm.className =
-        "repayment-form";
-
-
-    repaymentForm.innerHTML = `
-
-        <div class="repayment-form-content">
-
-            <h4>
-                Make Loan Repayment
-            </h4>
-
-
-            <label>
-                Repayment Amount
-            </label>
-
-            <input
-                type="number"
-                class="repayment-amount"
-                placeholder="Enter amount"
-                min="1"
-                step="0.01"
-            />
-
-
-            <label>
-                Repayment Date
-            </label>
-
-            <input
-                type="date"
-                class="repayment-date"
-                value="${
-                    new Date()
-                        .toISOString()
-                        .split("T")[0]
-                }"
-            />
-
-
-            <div class="repayment-form-actions">
-
-                <button
-                    type="button"
-                    class="submit-repayment-button"
-                    data-loan-id="${loanId}"
-                >
-                    Submit Repayment
-                </button>
-
-
-                <button
-                    type="button"
-                    class="cancel-repayment-button"
-                >
-                    Cancel
-                </button>
-
-            </div>
-
-        </div>
-
-    `;
-
-
-    // ==============================================
-    // ADD FORM TO LOAN CARD
-    // ==============================================
-
-    loanCard.appendChild(
-        repaymentForm
-    );
-
-});
-
-// ======================================================
-// SUBMIT REPAYMENT
-// ======================================================
-
-document.addEventListener("click", async (event) => {
-
-    const button =
-        event.target.closest(
-            ".submit-repayment-button"
-        );
-
-    if (!button) {
-        return;
-    }
-
-
-    const loanId =
-        button.dataset.loanId;
-
-
-    const repaymentForm =
-        button.closest(
-            ".repayment-form"
-        );
-
-    if (!repaymentForm) {
-        return;
-    }
-
-
-    const amountInput =
-        repaymentForm.querySelector(
-            ".repayment-amount"
-        );
-
-    const dateInput =
-        repaymentForm.querySelector(
-            ".repayment-date"
-        );
-
-
-    const amount =
-        Number(
-            amountInput.value
-        );
-
-    const repaymentDate =
-        dateInput.value;
-
-
-    // ==============================================
-    // VALIDATE AMOUNT
-    // ==============================================
-
-    if (
-        !Number.isFinite(amount) ||
-        amount <= 0
-    ) {
-
-        alert(
-            "Please enter a valid repayment amount."
-        );
-
-        return;
-    }
-
-
-    // ==============================================
-    // VALIDATE DATE
-    // ==============================================
-
-    if (!repaymentDate) {
-
-        alert(
-            "Please select a repayment date."
-        );
-
-        return;
-    }
-
-
-    console.log(
-        "Submitting repayment:",
-        {
-            loanId,
-            amount,
-            repaymentDate
-        }
-    );
-
-
-    try {
-
-        button.disabled = true;
-
-        button.textContent =
-            "Processing...";
-
-
-        // ==========================================
-        // SEND REPAYMENT TO BACKEND
-        // ==========================================
-
-        const response =
-            await fetch(
-                `/api/loans/${loanId}/repay`,
-                {
-                    method: "POST",
-
-                    headers: {
-                        "Content-Type":
-                            "application/json"
-                    },
-
-                    body: JSON.stringify({
-
-                        amount:
-                            amount,
-
-                        repayment_date:
-                            repaymentDate
-
-                    })
-
-                }
-            );
-
-
-        const data =
-            await response.json();
-
-
-        console.log(
-            "Repayment response:",
-            data
-        );
-
-
-        // ==========================================
-        // HANDLE ERROR
-        // ==========================================
-
-        if (!response.ok) {
-
-            throw new Error(
-                data.error ||
-                "Unable to record repayment."
-            );
-
-        }
-
-
-        // ==========================================
-        // SUCCESS
-        // ==========================================
-
-        alert(
-            data.message ||
-            "Repayment recorded successfully!"
-        );
-
-
-        // ==========================================
-        // RELOAD LOAN INFORMATION
-        // ==========================================
-
-        await loadLoans();
-
-
-    } catch (error) {
-
-        console.error(
-            "Repayment error:",
-            error
-        );
-
-        alert(
-            `Unable to record repayment: ${error.message}`
-        );
-
-
-        button.disabled = false;
-
-        button.textContent =
-            "Submit Repayment";
-
-    }
-
-});

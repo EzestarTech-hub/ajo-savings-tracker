@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Ajo Savings Tracker - Contributions</title>
+
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/responsive.css">
+
+</head>
+
+
+<body>
+
+<header class="topbar">
+
+    <h1>
+        Ajo Savings Tracker
+    </h1>
+
+
+    <nav>
+
+        <a href="dashboard.html">
+            Dashboard
+        </a>
+
+        <a href="groups.html">
+            Groups
+        </a>
+
+        <a href="members.html">
+            Members
+        </a>
+
+        <a href="loans.html">
+            Loans
+        </a>
+
+        <a
+            href="contributions.html"
+            class="active"
+        >
+            Contributions
+        </a>
+
+        <a href="payouts.html">
+            Payouts
+        </a>
+
+        <a href="reports.html">
+            Reports
+        </a>
+
+    </nav>
+
+</header>
+
+
+<main class="container">
+
+
+    <!-- ========================================= -->
+    <!-- PAGE HEADER -->
+    <!-- ========================================= -->
+
+    <section class="page-header">
+
+        <div>
+
+            <h2>
+                Contributions
+            </h2>
+
+            <p>
+                Record and manage member contributions.
+            </p>
+
+        </div>
+
+
+        <button
+            type="button"
+            id="refreshContributions"
+        >
+            Refresh
+        </button>
+
+    </section>
+
+
+
+    <!-- ========================================= -->
+    <!-- RECORD CONTRIBUTION -->
+    <!-- ========================================= -->
+
+    <section>
+
+        <h3>
+            Record Contribution
+        </h3>
+
+
+        <form id="contributionForm">
+
+
+            <div>
+
+                <label for="memberSelect">
+                    Member
+                </label>
+
+
+                <select
+                    id="memberSelect"
+                    required
+                >
+
+                    <option value="">
+                        Select member
+                    </option>
+
+                </select>
+
+            </div>
+
+
+
+            <div>
+
+                <label for="contributionAmount">
+                    Amount
+                </label>
+
+
+                <input
+                    type="number"
+                    id="contributionAmount"
+                    min="1"
+                    step="0.01"
+                    placeholder="Enter amount"
+                    required
+                >
+
+            </div>
+
+
+
+            <div>
+
+                <label for="paymentDate">
+                    Payment Date
+                </label>
+
+
+                <input
+                    type="date"
+                    id="paymentDate"
+                    required
+                >
+
+            </div>
+
+
+
+            <button type="submit">
+                Record Contribution
+            </button>
+
+
+        </form>
+
+
+        <div id="formMessage"></div>
+
+    </section>
+
+
+
+    <!-- ========================================= -->
+    <!-- CONTRIBUTIONS LIST -->
+    <!-- ========================================= -->
+
+    <section>
+
+        <div id="contributionMessage">
+            Loading contributions...
+        </div>
+
+
+        <div id="contributionsList"></div>
+
+    </section>
+
+
+</main>
+
+
+
+<script>
+
+
+const contributionForm =
+    document.getElementById(
+        "contributionForm"
+    );
+
+
+const memberSelect =
+    document.getElementById(
+        "memberSelect"
+    );
+
+
+const contributionAmount =
+    document.getElementById(
+        "contributionAmount"
+    );
+
+
+const paymentDate =
+    document.getElementById(
+        "paymentDate"
+    );
+
+
+const formMessage =
+    document.getElementById(
+        "formMessage"
+    );
+
+
+const contributionMessage =
+    document.getElementById(
+        "contributionMessage"
+    );
+
+
+const contributionsList =
+    document.getElementById(
+        "contributionsList"
+    );
+
+
+const refreshButton =
+    document.getElementById(
+        "refreshContributions"
+    );
+
+
+
+/* ============================================
+   LOAD MEMBERS
+============================================ */
+
+async function loadMembers() {
+
+    try {
+
+        const response =
+            await fetch(
+                "/api/members/",
+                {
+                    cache: "no-store"
+                }
+            );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Unable to load members."
+            );
+
+        }
+
+
+        const members =
+            await response.json();
+
+
+        memberSelect.innerHTML = `
+
+            <option value="">
+                Select member
+            </option>
+
+        `;
+
+
+        members.forEach(member => {
+
+            const option =
+                document.createElement(
+                    "option"
+                );
+
+
+            option.value =
+                member.id;
+
+
+            option.textContent =
+                `${member.name} — ${member.group_name}`;
+
+
+            memberSelect.appendChild(
+                option
+            );
+
+        });
+
+
+    } catch (error) {
+
+        console.error(
+            "Member loading error:",
+            error
+        );
+
+
+        formMessage.textContent =
+            "Unable to load members.";
+
+    }
+
+}
+
+
+
+/* ============================================
+   RECORD CONTRIBUTION
+============================================ */
+
+contributionForm.addEventListener(
+    "submit",
+    async function (event) {
+
+        event.preventDefault();
+
+
+        const memberId =
+            memberSelect.value;
+
+
+        const amount =
+            Number(
+                contributionAmount.value
+            );
+
+
+        const date =
+            paymentDate.value;
+
+
+        if (!memberId) {
+
+            formMessage.textContent =
+                "Please select a member.";
+
+            return;
+
+        }
+
+
+        if (
+            !Number.isFinite(amount) ||
+            amount <= 0
+        ) {
+
+            formMessage.textContent =
+                "Enter a valid contribution amount.";
+
+            return;
+
+        }
+
+
+        if (!date) {
+
+            formMessage.textContent =
+                "Please select a payment date.";
+
+            return;
+
+        }
+
+
+        formMessage.textContent =
+            "Recording contribution...";
+
+
+        try {
+
+            const response =
+                await fetch(
+                    `/api/members/${memberId}/contributions`,
+                    {
+
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body: JSON.stringify({
+
+                            amount: amount,
+
+                            payment_date: date
+
+                        })
+
+                    }
+                );
+
+
+            const data =
+                await response.json();
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    data.error ||
+                    "Unable to record contribution."
+                );
+
+            }
+
+
+            formMessage.textContent =
+                data.message ||
+                "Contribution recorded successfully.";
+
+
+            contributionForm.reset();
+
+
+            await loadContributions();
+
+
+        } catch (error) {
+
+            console.error(
+                "Contribution error:",
+                error
+            );
+
+
+            formMessage.textContent =
+                error.message;
+
+        }
+
+    }
+);
+
+
+
+/* ============================================
+   LOAD CONTRIBUTIONS
+============================================ */
+
+async function loadContributions() {
+
+    contributionMessage.textContent =
+        "Loading contributions...";
+
+
+    contributionsList.innerHTML = "";
+
+
+    try {
+
+        const membersResponse =
+            await fetch(
+                "/api/members/",
+                {
+                    cache: "no-store"
+                }
+            );
+
+
+        if (!membersResponse.ok) {
+
+            throw new Error(
+                "Unable to load members."
+            );
+
+        }
+
+
+        const members =
+            await membersResponse.json();
+
+
+        const records = [];
+
+
+        for (
+            const member of members
+        ) {
+
+            const response =
+                await fetch(
+                    `/api/members/${member.id}/contributions`,
+                    {
+                        cache: "no-store"
+                    }
+                );
+
+
+            if (!response.ok) {
+                continue;
+            }
+
+
+            const contributions =
+                await response.json();
+
+
+            contributions.forEach(
+                contribution => {
+
+                    records.push({
+
+                        ...contribution,
+
+                        memberName:
+                            member.name,
+
+                        groupName:
+                            member.group_name
+
+                    });
+
+                }
+            );
+
+        }
+
+
+        records.sort(
+            (a, b) =>
+                new Date(b.payment_date) -
+                new Date(a.payment_date)
+        );
+
+
+        if (
+            records.length === 0
+        ) {
+
+            contributionMessage.textContent =
+                "No contributions found.";
+
+            return;
+
+        }
+
+
+        contributionMessage.textContent =
+            `${records.length} contributions`;
+
+
+        records.forEach(
+            contribution => {
+
+                const card =
+                    document.createElement(
+                        "div"
+                    );
+
+
+                card.className =
+                    "member-card";
+
+
+                card.innerHTML = `
+
+                    <div
+                        class="member-card-header"
+                    >
+
+                        <div>
+
+                            <strong>
+                                ${contribution.memberName}
+                            </strong>
+
+                            <p>
+                                ${contribution.groupName}
+                            </p>
+
+                        </div>
+
+
+                        <span>
+
+                            Contribution ID:
+                            ${contribution.id}
+
+                        </span>
+
+                    </div>
+
+
+                    <div
+                        class="member-financial-summary"
+                    >
+
+
+                        <div>
+
+                            <strong>
+
+                                ₦${Number(
+                                    contribution.amount || 0
+                                ).toLocaleString()}
+
+                            </strong>
+
+                            <span>
+                                Amount
+                            </span>
+
+                        </div>
+
+
+                        <div>
+
+                            <strong>
+
+                                ${contribution.payment_date}
+
+                            </strong>
+
+                            <span>
+                                Payment Date
+                            </span>
+
+                        </div>
+
+
+                    </div>
+
+                `;
+
+
+                contributionsList.appendChild(
+                    card
+                );
+
+            }
+        );
+
+
+    } catch (error) {
+
+        console.error(
+            "Contribution loading error:",
+            error
+        );
+
+
+        contributionMessage.textContent =
+            "Unable to load contributions.";
+
+    }
+
+}
+
+
+
+/* ============================================
+   REFRESH
+============================================ */
+
+refreshButton.addEventListener(
+    "click",
+    async function () {
+
+        await loadMembers();
+
+        await loadContributions();
+
+    }
+);
+
+
+
+/* ============================================
+   INITIAL LOAD
+============================================ */
+
+loadMembers();
+
+loadContributions();
+
+
+/* Set today's date automatically */
+
+const today =
+    new Date()
+        .toISOString()
+        .split("T")[0];
+
+
+paymentDate.value =
+    today;
+
+
+</script>
+
+</body>
+
+</html>

@@ -881,6 +881,15 @@ async function loadLoanActivity() {
 
                     </div>
 
+                    <button
+                        type="button"
+                        class="view-loan-details-button"
+                        data-loan-id="${loan.id}"
+                        data-group-id="${loan.groupId}"
+                    >
+                        View Loan Details
+                    </button>
+
 
                     <div class="loan-activity-footer">
 
@@ -910,9 +919,33 @@ async function loadLoanActivity() {
                     item
                 );
 
+                const viewLoanDetailsButton =
+    item.querySelector(
+        ".view-loan-details-button"
+    );
+
+if (viewLoanDetailsButton) {
+
+    viewLoanDetailsButton.addEventListener(
+        "click",
+        () => {
+
+            const loanId =
+                viewLoanDetailsButton.dataset.loanId;
+
+            const groupId =
+                viewLoanDetailsButton.dataset.groupId;
+
+            window.location.href =
+                `group-details.html?id=${groupId}&loanId=${loanId}`;
+
+        }
+    );
+
+}
+
             }
         );
-
 
     } catch (error) {
 

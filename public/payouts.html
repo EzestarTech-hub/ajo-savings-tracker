@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Ajo Savings Tracker - Payouts</title>
+
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/responsive.css">
+
+</head>
+
+
+<body>
+
+<header class="topbar">
+
+    <h1>Ajo Savings Tracker</h1>
+
+
+    <nav>
+
+        <a href="dashboard.html">
+            Dashboard
+        </a>
+
+        <a href="groups.html">
+            Groups
+        </a>
+
+        <a href="members.html">
+            Members
+        </a>
+
+        <a href="loans.html">
+            Loans
+        </a>
+
+        <a href="contributions.html">
+            Contributions
+        </a>
+
+        <a
+            href="payouts.html"
+            class="active"
+        >
+            Payouts
+        </a>
+
+        <a href="reports.html">
+            Reports
+        </a>
+
+    </nav>
+
+</header>
+
+
+<main class="container">
+
+
+    <!-- ========================================= -->
+    <!-- PAGE HEADER -->
+    <!-- ========================================= -->
+
+    <section class="page-header">
+
+        <div>
+
+            <h2>
+                Payouts
+            </h2>
+
+            <p>
+                Record and manage member payouts.
+            </p>
+
+        </div>
+
+
+        <button
+            type="button"
+            id="refreshPayouts"
+        >
+            Refresh
+        </button>
+
+    </section>
+
+
+
+    <!-- ========================================= -->
+    <!-- RECORD PAYOUT -->
+    <!-- ========================================= -->
+
+    <section>
+
+        <h3>
+            Record Payout
+        </h3>
+
+
+        <form id="payoutForm">
+
+
+            <div>
+
+                <label for="memberSelect">
+                    Member
+                </label>
+
+
+                <select
+                    id="memberSelect"
+                    required
+                >
+
+                    <option value="">
+                        Select member
+                    </option>
+
+                </select>
+
+            </div>
+
+
+
+            <div>
+
+                <label for="payoutAmount">
+                    Amount
+                </label>
+
+
+                <input
+                    type="number"
+                    id="payoutAmount"
+                    min="1"
+                    step="0.01"
+                    placeholder="Enter payout amount"
+                    required
+                >
+
+            </div>
+
+
+
+            <div>
+
+                <label for="payoutDate">
+                    Payout Date
+                </label>
+
+
+                <input
+                    type="date"
+                    id="payoutDate"
+                    required
+                >
+
+            </div>
+
+
+
+            <button type="submit">
+                Record Payout
+            </button>
+
+
+        </form>
+
+
+        <div id="formMessage"></div>
+
+    </section>
+
+
+
+    <!-- ========================================= -->
+    <!-- PAYOUT LIST -->
+    <!-- ========================================= -->
+
+    <section>
+
+        <div id="payoutMessage">
+            Loading payouts...
+        </div>
+
+
+        <div id="payoutsList"></div>
+
+    </section>
+
+</main>
+
+
+
+<script>
+
+
+const payoutForm =
+    document.getElementById(
+        "payoutForm"
+    );
+
+
+const memberSelect =
+    document.getElementById(
+        "memberSelect"
+    );
+
+
+const payoutAmount =
+    document.getElementById(
+        "payoutAmount"
+    );
+
+
+const payoutDate =
+    document.getElementById(
+        "payoutDate"
+    );
+
+
+const formMessage =
+    document.getElementById(
+        "formMessage"
+    );
+
+
+const payoutMessage =
+    document.getElementById(
+        "payoutMessage"
+    );
+
+
+const payoutsList =
+    document.getElementById(
+        "payoutsList"
+    );
+
+
+const refreshButton =
+    document.getElementById(
+        "refreshPayouts"
+    );
+
+
+
+/* ============================================
+   LOAD MEMBERS
+============================================ */
+
+async function loadMembers() {
+
+    try {
+
+        const response =
+            await fetch(
+                "/api/members/",
+                {
+                    cache: "no-store"
+                }
+            );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Unable to load members."
+            );
+
+        }
+
+
+        const members =
+            await response.json();
+
+
+        memberSelect.innerHTML = `
+
+            <option value="">
+                Select member
+            </option>
+
+        `;
+
+
+        members.forEach(member => {
+
+            const option =
+                document.createElement(
+                    "option"
+                );
+
+
+            option.value =
+                member.id;
+
+
+            option.textContent =
+                `${member.name} — ${member.group_name}`;
+
+
+            memberSelect.appendChild(
+                option
+            );
+
+        });
+
+
+    } catch (error) {
+
+        console.error(
+            "Member loading error:",
+            error
+        );
+
+
+        formMessage.textContent =
+            "Unable to load members.";
+
+    }
+
+}
+
+
+
+/* ============================================
+   RECORD PAYOUT
+============================================ */
+
+payoutForm.addEventListener(
+    "submit",
+    async function (event) {
+
+        event.preventDefault();
+
+
+        const memberId =
+            memberSelect.value;
+
+
+        const amount =
+            Number(
+                payoutAmount.value
+            );
+
+
+        const date =
+            payoutDate.value;
+
+
+        if (!memberId) {
+
+            formMessage.textContent =
+                "Please select a member.";
+
+            return;
+
+        }
+
+
+        if (
+            !Number.isFinite(amount) ||
+            amount <= 0
+        ) {
+
+            formMessage.textContent =
+                "Enter a valid payout amount.";
+
+            return;
+
+        }
+
+
+        if (!date) {
+
+            formMessage.textContent =
+                "Please select a payout date.";
+
+            return;
+
+        }
+
+
+        formMessage.textContent =
+            "Recording payout...";
+
+
+        try {
+
+            const response =
+                await fetch(
+                    `/api/members/${memberId}/payouts`,
+                    {
+
+                        method: "POST",
+
+                        headers: {
+
+                            "Content-Type":
+                                "application/json"
+
+                        },
+
+                        body: JSON.stringify({
+
+                            amount: amount,
+
+                            payout_date: date
+
+                        })
+
+                    }
+                );
+
+
+            const data =
+                await response.json();
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    data.error ||
+                    "Unable to record payout."
+                );
+
+            }
+
+
+            formMessage.textContent =
+                data.message ||
+                "Payout recorded successfully.";
+
+
+            payoutForm.reset();
+
+
+            await loadPayouts();
+
+
+        } catch (error) {
+
+            console.error(
+                "Payout error:",
+                error
+            );
+
+
+            formMessage.textContent =
+                error.message;
+
+        }
+
+    }
+);
+
+
+
+/* ============================================
+   LOAD PAYOUTS
+============================================ */
+
+async function loadPayouts() {
+
+    payoutMessage.textContent =
+        "Loading payouts...";
+
+
+    payoutsList.innerHTML = "";
+
+
+    try {
+
+        const membersResponse =
+            await fetch(
+                "/api/members/",
+                {
+                    cache: "no-store"
+                }
+            );
+
+
+        if (!membersResponse.ok) {
+
+            throw new Error(
+                "Unable to load members."
+            );
+
+        }
+
+
+        const members =
+            await membersResponse.json();
+
+
+        const records = [];
+
+
+        for (
+            const member of members
+        ) {
+
+            const response =
+                await fetch(
+                    `/api/members/${member.id}/payouts`,
+                    {
+                        cache: "no-store"
+                    }
+                );
+
+
+            if (!response.ok) {
+                continue;
+            }
+
+
+            const payouts =
+                await response.json();
+
+
+            payouts.forEach(
+                payout => {
+
+                    records.push({
+
+                        ...payout,
+
+                        memberName:
+                            member.name,
+
+                        groupName:
+                            member.group_name
+
+                    });
+
+                }
+            );
+
+        }
+
+
+        records.sort(
+            (a, b) =>
+                new Date(b.payout_date) -
+                new Date(a.payout_date)
+        );
+
+
+        if (
+            records.length === 0
+        ) {
+
+            payoutMessage.textContent =
+                "No payouts found.";
+
+            return;
+
+        }
+
+
+        payoutMessage.textContent =
+            `${records.length} payouts`;
+
+
+        records.forEach(
+            payout => {
+
+                const card =
+                    document.createElement(
+                        "div"
+                    );
+
+
+                card.className =
+                    "member-card";
+
+
+                card.innerHTML = `
+
+                    <div
+                        class="member-card-header"
+                    >
+
+                        <div>
+
+                            <strong>
+                                ${payout.memberName}
+                            </strong>
+
+                            <p>
+                                ${payout.groupName}
+                            </p>
+
+                        </div>
+
+
+                        <span>
+
+                            Payout ID:
+                            ${payout.id}
+
+                        </span>
+
+                    </div>
+
+
+                    <div
+                        class="member-financial-summary"
+                    >
+
+
+                        <div>
+
+                            <strong>
+
+                                ₦${Number(
+                                    payout.amount || 0
+                                ).toLocaleString()}
+
+                            </strong>
+
+                            <span>
+                                Amount
+                            </span>
+
+                        </div>
+
+
+                        <div>
+
+                            <strong>
+
+                                ${payout.payout_date}
+
+                            </strong>
+
+                            <span>
+                                Payout Date
+                            </span>
+
+                        </div>
+
+
+                    </div>
+
+                `;
+
+
+                payoutsList.appendChild(
+                    card
+                );
+
+            }
+        );
+
+
+    } catch (error) {
+
+        console.error(
+            "Payout loading error:",
+            error
+        );
+
+
+        payoutMessage.textContent =
+            "Unable to load payouts.";
+
+    }
+
+}
+
+
+
+/* ============================================
+   REFRESH
+============================================ */
+
+refreshButton.addEventListener(
+    "click",
+    async function () {
+
+        await loadMembers();
+
+        await loadPayouts();
+
+    }
+);
+
+
+
+/* ============================================
+   INITIAL LOAD
+============================================ */
+
+loadMembers();
+
+loadPayouts();
+
+
+
+/* Set today's date automatically */
+
+const today =
+    new Date()
+        .toISOString()
+        .split("T")[0];
+
+
+payoutDate.value =
+    today;
+
+
+</script>
+
+</body>
+
+</html>

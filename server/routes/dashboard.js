@@ -676,6 +676,8 @@ router.get("/loan-activity", (req, res) => {
             ) AS due_date,
 
             members.name AS member_name,
+            loans.member_id,
+            loans.group_id,
             groups.name AS group_name
 
         FROM loans
@@ -743,6 +745,12 @@ router.get("/loan-activity", (req, res) => {
 
                 id:
                     loan.id,
+
+                memberId:
+                    loan.member_id,
+
+                groupId:
+                    loan.group_id,
 
                 memberName:
                     loan.member_name,

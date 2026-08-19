@@ -24,6 +24,7 @@
 
 </head>
 
+
 <body>
 
     <header class="topbar">
@@ -31,6 +32,7 @@
         <h1>
             Ajo Savings Tracker
         </h1>
+
 
         <nav>
 
@@ -42,7 +44,10 @@
                 Groups
             </a>
 
-            <a href="members.html" class="active">
+            <a
+                href="members.html"
+                class="active"
+            >
                 Members
             </a>
 
@@ -57,6 +62,7 @@
         </nav>
 
     </header>
+
 
 
     <main class="container">
@@ -75,6 +81,7 @@
 
             </div>
 
+
             <button
                 type="button"
                 id="refreshMembers"
@@ -85,17 +92,20 @@
         </section>
 
 
+
         <section>
 
             <div id="membersMessage">
                 Loading members...
             </div>
 
+
             <div id="membersList"></div>
 
         </section>
 
     </main>
+
 
 
     <script>
@@ -105,10 +115,12 @@
                 "membersList"
             );
 
+
         const membersMessage =
             document.getElementById(
                 "membersMessage"
             );
+
 
         const refreshMembers =
             document.getElementById(
@@ -116,222 +128,263 @@
             );
 
 
+
         async function loadMembers() {
 
-    membersMessage.textContent =
-        "Loading members...";
-
-    membersList.innerHTML = "";
-
-
-    try {
-
-        const response =
-            await fetch(
-                "/api/members/summary",
-                {
-                    cache: "no-store"
-                }
-            );
-
-
-        if (!response.ok) {
-
-            throw new Error(
-                `Failed to load member summary: ${response.status}`
-            );
-
-        }
-
-
-        const members =
-            await response.json();
-
-
-        if (
-            !Array.isArray(members) ||
-            members.length === 0
-        ) {
-
             membersMessage.textContent =
-                "No members found.";
-
-            return;
-
-        }
+                "Loading members...";
 
 
-        membersMessage.textContent =
-            `${members.length} members`;
+            membersList.innerHTML = "";
 
 
-        members.forEach(member => {
+            try {
 
-            const card =
-                document.createElement(
-                    "div"
+                const response =
+                    await fetch(
+                        "/api/members/summary",
+                        {
+                            cache: "no-store"
+                        }
+                    );
+
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        `Failed to load member summary: ${response.status}`
+                    );
+
+                }
+
+
+                const members =
+                    await response.json();
+
+
+
+                if (
+                    !Array.isArray(members) ||
+                    members.length === 0
+                ) {
+
+                    membersMessage.textContent =
+                        "No members found.";
+
+                    return;
+
+                }
+
+
+
+                membersMessage.textContent =
+                    `${members.length} members`;
+
+
+
+                members.forEach(member => {
+
+                    const card =
+                        document.createElement(
+                            "div"
+                        );
+
+
+                    card.className =
+                        "member-card";
+
+
+
+                    const totalContributions =
+                        Number(
+                            member.totalContributions || 0
+                        );
+
+
+                    const totalPayouts =
+                        Number(
+                            member.totalPayouts || 0
+                        );
+
+
+                    const totalLoans =
+                        Number(
+                            member.totalLoans || 0
+                        );
+
+
+                    const outstandingLoans =
+                        Number(
+                            member.outstandingLoans || 0
+                        );
+
+
+
+                    const balance =
+                        totalContributions -
+                        totalPayouts;
+
+
+
+                    let balanceClass =
+                        "member-balance";
+
+
+
+                    if (balance > 0) {
+
+                        balanceClass =
+                            "member-balance positive";
+
+                    } else if (balance < 0) {
+
+                        balanceClass =
+                            "member-balance negative";
+
+                    } else {
+
+                        balanceClass =
+                            "member-balance zero";
+
+                    }
+
+
+
+                    card.innerHTML = `
+
+                        <div class="member-card-header">
+
+                            <div>
+
+                                <strong>
+                                    ${member.name || "Unknown Member"}
+                                </strong>
+
+                                <p>
+                                    ${member.group_name || "No Group"}
+                                </p>
+
+                            </div>
+
+
+                            <span>
+                                Member ID:
+                                ${member.id}
+                            </span>
+
+                        </div>
+
+
+
+                        <div class="member-financial-summary">
+
+
+                            <div>
+
+                                <strong>
+                                    ₦${totalContributions.toLocaleString()}
+                                </strong>
+
+                                <span>
+                                    Contributions
+                                </span>
+
+                            </div>
+
+
+
+                            <div>
+
+                                <strong>
+                                    ₦${totalPayouts.toLocaleString()}
+                                </strong>
+
+                                <span>
+                                    Payouts
+                                </span>
+
+                            </div>
+
+
+
+                            <div
+                                class="${balanceClass}"
+                            >
+
+                                <strong>
+                                    ₦${balance.toLocaleString()}
+                                </strong>
+
+                                <span>
+                                    Savings Balance
+                                </span>
+
+                            </div>
+
+
+
+                            <div>
+
+                                <strong>
+                                    ₦${totalLoans.toLocaleString()}
+                                </strong>
+
+                                <span>
+                                    Total Loans
+                                </span>
+
+                            </div>
+
+
+
+                            <div>
+
+                                <strong>
+                                    ₦${outstandingLoans.toLocaleString()}
+                                </strong>
+
+                                <span>
+                                    Outstanding Loan
+                                </span>
+
+                            </div>
+
+
+                        </div>
+
+                    `;
+
+
+
+                    membersList.appendChild(
+                        card
+                    );
+
+                });
+
+
+            } catch (error) {
+
+                console.error(
+                    "Members loading error:",
+                    error
                 );
 
 
-            card.className =
-                "member-card";
-
-
-            const balance =
-                Number(
-                    member.balance || 0
-                );
-
-
-            let balanceClass =
-                "member-balance";
-
-
-            if (balance > 0) {
-
-                balanceClass =
-                    "member-balance positive";
-
-            } else if (balance < 0) {
-
-                balanceClass =
-                    "member-balance negative";
-
-            } else {
-
-                balanceClass =
-                    "member-balance zero";
+                membersMessage.textContent =
+                    "Unable to load members.";
 
             }
 
-
-            card.innerHTML = `
-
-                <div class="member-card-header">
-
-                    <div>
-
-                        <strong>
-                            ${member.name}
-                        </strong>
-
-                        <p>
-                            ${member.group_name}
-                        </p>
-
-                    </div>
+        }
 
 
-                    <span>
-                        Member ID:
-                        ${member.id}
-                    </span>
 
-                </div>
-
-
-                <div class="member-financial-summary">
-
-                    <div>
-
-                        <strong>
-                            ₦${Number(
-                                member.totalContributions || 0
-                            ).toLocaleString()}
-                        </strong>
-
-                        <span>
-                            Contributions
-                        </span>
-
-                    </div>
-
-
-                    <div>
-
-                        <strong>
-                            ₦${Number(
-                                member.totalPayouts || 0
-                            ).toLocaleString()}
-                        </strong>
-
-                        <span>
-                            Payouts
-                        </span>
-
-                    </div>
-
-
-                    <div
-                        class="${balanceClass}"
-                    >
-
-                        <strong>
-                            ₦${balance.toLocaleString()}
-                        </strong>
-
-                        <span>
-                            Savings Balance
-                        </span>
-
-                    </div>
-
-
-                    <div>
-
-                        <strong>
-                            ₦${Number(
-                                member.totalLoans || 0
-                            ).toLocaleString()}
-                        </strong>
-
-                        <span>
-                            Total Loans
-                        </span>
-
-                    </div>
-
-
-                    <div>
-
-                        <strong>
-                            ₦${Number(
-                                member.outstandingLoans || 0
-                            ).toLocaleString()}
-                        </strong>
-
-                        <span>
-                            Outstanding Loan
-                        </span>
-
-                    </div>
-
-                </div>
-
-            `;
-
-
-            membersList.appendChild(
-                card
-            );
-
-        });
-
-
-    } catch (error) {
-
-        console.error(
-            "Members loading error:",
-            error
+        refreshMembers.addEventListener(
+            "click",
+            loadMembers
         );
 
-
-        membersMessage.textContent =
-            "Unable to load members.";
-
-    }
-
-}
 
 
         loadMembers();
