@@ -727,33 +727,34 @@ router.get(
 
                 const membersSql = `
 
-                    SELECT
+    SELECT
 
-                        members.id AS member_id,
+        members.id AS member_id,
 
-                        members.name AS member_name,
+        members.name AS member_name,
 
-                        COALESCE(
-                            SUM(
-                                contributions.amount
-                            ),
-                            0
-                        ) AS actual_contribution
+        COALESCE(
+            SUM(contributions.amount),
+            0
+        ) AS actual_contribution
 
-                    FROM members
+    FROM members
 
-                    LEFT JOIN contributions
+    LEFT JOIN contributions
 
-                        ON members.id =
-                           contributions.member_id
+        ON members.id =
+           contributions.member_id
 
-                    WHERE members.group_id = ?
+    WHERE members.group_id = ?
 
-                    GROUP BY members.id
+    GROUP BY
+        members.id,
+        members.name
 
-                    ORDER BY members.id ASC
+    ORDER BY
+        members.id ASC
 
-                `;
+`;
 
 
                 db.all(
@@ -923,88 +924,81 @@ router.get(
                             members.map(
                                 member => {
 
-                                    const actual =
-                                        Number(
-                                            member.actual_contribution ||
-                                            0
-                                        );
+                        const actual =
+                            Number(
+                                member.actual_contribution ||
+                                0
+                    );
 
+            const expected =
+                expectedPerMember;
 
-                                    const expected =
-                                        expectedPerMember;
+            const outstanding =
+                Math.max(
+                    0,
+                    expected -
+                    actual
+                );
 
+            const difference =
+                actual -
+                expected;
 
-                                    const outstanding =
-                                        Math.max(
-                                            0,
+            let status;
 
-                                            expected -
-                                            actual
-                                        );
+            if (
+                actual >=
+                expected
+            ) {
 
+                status =
+                    "Paid";
 
-                                    const difference =
-                                        actual -
-                                        expected;
+            }
 
+            else if (
+                actual > 0
+            ) {
 
-                                    let status;
+                status =
+                    "Partially Paid";
 
+            }
 
-                                    if (
-                                        actual >=
-                                        expected
-                                    ) {
+            else {
 
-                                        status =
-                                            "Paid";
+                status =
+                    "Not Paid";
 
-                                    }
+            }
 
-                                    else if (
-                                        actual > 0
-                                    ) {
+            return {
 
-                                        status =
-                                            "Partially Paid";
+                member_id:
+                    member.member_id,
 
-                                    }
+                member_name:
+                    member.member_name,
 
-                                    else {
+                expected:
+                    expected,
 
-                                        status =
-                                            "Not Paid";
+                actual:
+                    actual,
 
-                                    }
+                difference:
+                    difference,
 
+                outstanding:
+                    outstanding,
 
-                                    return {
+                status:
+                    status
 
-                                        member_id:
-                                            member.member_id,
+            };
 
-                                        member_name:
-                                            member.member_name,
-
-                                        expected:
-                                            expected,
-
-                                        actual:
-                                            actual,
-
-                                        difference:
-                                            difference,
-
-                                        outstanding:
-                                            outstanding,
-
-                                        status:
-                                            status
-
-                                    };
-
-                                }
-                            );
+        }
+    );
 
 
                         // ==================================================
