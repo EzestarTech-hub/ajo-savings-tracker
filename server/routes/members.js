@@ -4,6 +4,40 @@ const router = express.Router();
 
 const db = require("../db");
 
+// ======================================================
+// GET ALL MEMBERS
+// ======================================================
+
+router.get("/", (req, res) => {
+
+    const sql = `
+        SELECT
+            members.id,
+            members.name,
+            members.group_id,
+            groups.name AS group_name
+        FROM members
+        INNER JOIN groups
+            ON groups.id = members.group_id
+        ORDER BY members.id DESC
+    `;
+
+    db.all(sql, [], (err, rows) => {
+
+        if (err) {
+
+            return res.status(500).json({
+                error: err.message
+            });
+
+        }
+
+        res.json(rows);
+
+    });
+
+});
+
 // POST - Add a member
 router.post("/:id/members", (req, res) => {
 

@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Ajo Savings Tracker - Members</title>
+
+    <link
+        rel="stylesheet"
+        href="css/style.css"
+    >
+
+    <link
+        rel="stylesheet"
+        href="css/responsive.css"
+    >
+
+</head>
+
+<body>
+
+    <header class="topbar">
+
+        <h1>
+            Ajo Savings Tracker
+        </h1>
+
+        <nav>
+
+            <a href="dashboard.html">
+                Dashboard
+            </a>
+
+            <a href="groups.html">
+                Groups
+            </a>
+
+            <a href="members.html" class="active">
+                Members
+            </a>
+
+            <a href="loans.html">
+                Loans
+            </a>
+
+            <a href="reports.html">
+                Reports
+            </a>
+
+        </nav>
+
+    </header>
+
+
+    <main class="container">
+
+        <section class="page-header">
+
+            <div>
+
+                <h2>
+                    Members
+                </h2>
+
+                <p>
+                    View all members and their savings groups.
+                </p>
+
+            </div>
+
+            <button
+                type="button"
+                id="refreshMembers"
+            >
+                Refresh
+            </button>
+
+        </section>
+
+
+        <section>
+
+            <div id="membersMessage">
+                Loading members...
+            </div>
+
+            <div id="membersList"></div>
+
+        </section>
+
+    </main>
+
+
+    <script>
+
+        const membersList =
+            document.getElementById(
+                "membersList"
+            );
+
+        const membersMessage =
+            document.getElementById(
+                "membersMessage"
+            );
+
+        const refreshMembers =
+            document.getElementById(
+                "refreshMembers"
+            );
+
+
+        async function loadMembers() {
+
+            membersMessage.textContent =
+                "Loading members...";
+
+            membersList.innerHTML = "";
+
+
+            try {
+
+                const response =
+                    await fetch(
+                        "/api/members",
+                        {
+                            cache: "no-store"
+                        }
+                    );
+
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        `Failed to load members: ${response.status}`
+                    );
+
+                }
+
+
+                const members =
+                    await response.json();
+
+
+                if (
+                    !Array.isArray(members) ||
+                    members.length === 0
+                ) {
+
+                    membersMessage.textContent =
+                        "No members found.";
+
+                    return;
+
+                }
+
+
+                membersMessage.textContent =
+                    `${members.length} members`;
+
+
+                members.forEach(member => {
+
+                    const card =
+                        document.createElement(
+                            "div"
+                        );
+
+
+                    card.className =
+                        "member-card";
+
+
+                    card.innerHTML = `
+
+                        <div>
+
+                            <strong>
+                                ${member.name}
+                            </strong>
+
+                            <p>
+                                Group:
+                                ${member.group_name}
+                            </p>
+
+                        </div>
+
+
+                        <div>
+
+                            <span>
+                                Member ID:
+                                ${member.id}
+                            </span>
+
+                        </div>
+
+                    `;
+
+
+                    membersList.appendChild(
+                        card
+                    );
+
+                });
+
+
+            } catch (error) {
+
+                console.error(
+                    "Members loading error:",
+                    error
+                );
+
+
+                membersMessage.textContent =
+                    "Unable to load members.";
+
+            }
+
+        }
+
+
+        refreshMembers.addEventListener(
+            "click",
+            loadMembers
+        );
+
+
+        loadMembers();
+
+    </script>
+
+</body>
+
+</html>

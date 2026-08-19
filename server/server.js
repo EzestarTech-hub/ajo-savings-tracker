@@ -23,6 +23,7 @@ app.use(express.static(path.join(__dirname, "../public")));
 app.use("/api/groups", groupsRouter);
 app.use("/api/dashboard", dashboardRouter);
 app.use("/api/groups", membersRouter);
+app.use("/api/members", membersRouter);
 app.use("/api/members", contributionsRouter);
  app.use("/api/members", payoutsRouter);
 app.use("/api/schedule", scheduleRouter);
