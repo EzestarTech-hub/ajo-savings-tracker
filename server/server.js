@@ -15,8 +15,14 @@ const scheduleRouter = require("./routes/schedule");
 const loansRouter = require("./routes/loans");
 
 
-// Middleware
+/// Middleware
 app.use(express.json());
+
+// Home route
+app.get("/", (req, res) => {
+    res.redirect("/dashboard.html");
+});
+
 app.use(express.static(path.join(__dirname, "../public")));
 
 // Routes
@@ -30,10 +36,7 @@ app.use("/api/schedule", scheduleRouter);
 app.use("/api/loans", loansRouter);
 app.use("/api/reports", reportsRouter);
 
-// Home route
-app.get("/", (req, res) => {
-  res.send("Ajo Savings Tracker API is running!");
-});
+
 
 // Start server
 app.listen(PORT, "0.0.0.0", () => {
