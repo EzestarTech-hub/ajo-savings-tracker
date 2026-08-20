@@ -590,6 +590,12 @@ db.run(`
                 "TEXT"
         },
 
+                {
+            name: "due_date",
+            definition:
+                "TEXT"
+        },
+
         {
             name: "status",
             definition:
